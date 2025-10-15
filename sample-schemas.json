@@ -1,0 +1,79 @@
+{
+  "sourceSchema": {
+    "name": "Schema",
+    "type": "root",
+    "children": [
+      {
+        "name": "Customer",
+        "type": "parent",
+        "children": [
+          {
+            "name": "PersonalInfo",
+            "type": "parent",
+            "children": [
+              { "name": "FirstName", "type": "field", "dataType": "string" },
+              { "name": "LastName", "type": "field", "dataType": "string" },
+              { "name": "DateOfBirth", "type": "field", "dataType": "date" },
+              { "name": "SSN", "type": "field", "dataType": "string" }
+            ]
+          },
+          {
+            "name": "ContactInfo",
+            "type": "parent",
+            "children": [
+              { "name": "Email", "type": "field", "dataType": "string" },
+              { "name": "Phone", "type": "field", "dataType": "string" },
+              { "name": "Address", "type": "field", "dataType": "string" },
+              { "name": "City", "type": "field", "dataType": "string" },
+              { "name": "State", "type": "field", "dataType": "string" },
+              { "name": "ZipCode", "type": "field", "dataType": "string" }
+            ]
+          },
+          {
+            "name": "AccountInfo",
+            "type": "parent",
+            "children": [
+              { "name": "AccountNumber", "type": "field", "dataType": "string" },
+              { "name": "AccountType", "type": "field", "dataType": "string" },
+              { "name": "Balance", "type": "field", "dataType": "decimal" },
+              { "name": "Status", "type": "field", "dataType": "string" }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "destinationSchema": {
+    "name": "Schema",
+    "type": "root",
+    "children": [
+      {
+        "name": "ContactRecord",
+        "type": "parent",
+        "children": [
+          { "name": "FullName", "type": "field", "dataType": "string" },
+          { "name": "EmailAddress", "type": "field", "dataType": "string" },
+          { "name": "PhoneNumber", "type": "field", "dataType": "string" },
+          {
+            "name": "MailingAddress",
+            "type": "parent",
+            "children": [
+              { "name": "Street", "type": "field", "dataType": "string" },
+              { "name": "CityState", "type": "field", "dataType": "string" },
+              { "name": "PostalCode", "type": "field", "dataType": "string" }
+            ]
+          },
+          {
+            "name": "Account",
+            "type": "parent",
+            "children": [
+              { "name": "ID", "type": "field", "dataType": "string" },
+              { "name": "Type", "type": "field", "dataType": "string" },
+              { "name": "CurrentBalance", "type": "field", "dataType": "decimal" }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

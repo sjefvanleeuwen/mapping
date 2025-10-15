@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schema Mapping Tool</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Configuration Panel -->
+    <div class="config-panel">
+        <h2>Schema Configuration</h2>
+        <div class="config-grid">
+            <div class="config-section">
+                <label for="sourceSchemaInput">Source Schema JSON:</label>
+                <textarea id="sourceSchemaInput" placeholder='Paste your source schema JSON here...'></textarea>
+            </div>
+            <div class="config-section">
+                <label for="destSchemaInput">Destination Schema JSON:</label>
+                <textarea id="destSchemaInput" placeholder='Paste your destination schema JSON here...'></textarea>
+            </div>
+        </div>
+        <div class="config-section">
+            <label for="sourceDataInput">Sample Source Data (for execution):</label>
+            <textarea id="sourceDataInput" placeholder='Paste sample source data JSON here...'></textarea>
+        </div>
+        <div class="button-group">
+            <button id="loadSchemas" class="primary-btn">Load Schemas</button>
+            <button id="loadSampleData" class="secondary-btn">Load Sample Data</button>
+            <button id="executeMapping" class="execute-btn">▶ Execute Mapping</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="mapping-tool">
+            <!-- Source Schema Panel -->
+            <div class="schema-panel source-panel">
+                <div class="panel-header">Source Schema</div>
+                <div class="schema-tree" id="sourceSchema">
+                    <!-- Will be populated dynamically -->
+                </div>
+            </div>
+
+            <!-- Mapping Canvas -->
+            <div class="mapping-canvas">
+                <svg id="mappingSvg" class="mapping-svg"></svg>
+                <div class="functoid-area" id="functoidArea">
+                    <!-- Functoids will be added here dynamically -->
+                </div>
+            </div>
+
+            <!-- Destination Schema Panel -->
+            <div class="schema-panel destination-panel">
+                <div class="panel-header">Destination Schema</div>
+                <div class="schema-tree" id="destinationSchema">
+                    <!-- Will be populated dynamically -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Functoid Toolbar -->
+        <div class="functoid-toolbar">
+            <div class="toolbar-title">Functoids</div>
+            <button class="functoid-btn" data-type="string" title="String Functoid">
+                <span class="functoid-icon">ABC</span>
+            </button>
+            <button class="functoid-btn" data-type="math" title="Math Functoid">
+                <span class="functoid-icon">+</span>
+            </button>
+            <button class="functoid-btn" data-type="logical" title="Logical Functoid">
+                <span class="functoid-icon">IF</span>
+            </button>
+            <button class="functoid-btn" data-type="conversion" title="Conversion Functoid">
+                <span class="functoid-icon">⇄</span>
+            </button>
+            <button class="clear-btn" id="clearMappings">Clear All Mappings</button>
+        </div>
+
+        <!-- Output Panel -->
+        <div class="output-panel">
+            <div class="output-header">
+                <h3>Mapping Configuration (JSON)</h3>
+                <div class="button-group">
+                    <button id="generateOutput" class="primary-btn">Generate Mapping JSON</button>
+                    <button id="copyOutput" class="secondary-btn">Copy to Clipboard</button>
+                    <button id="loadMapping" class="secondary-btn">Load Mapping</button>
+                </div>
+            </div>
+            <textarea id="mappingOutput" readonly placeholder="Mapping JSON will appear here..."></textarea>
+        </div>
+
+        <!-- Execution Result Panel -->
+        <div class="execution-panel" style="display: none;">
+            <div class="output-header">
+                <h3>✅ Execution Result - Mapped Destination Data</h3>
+                <div class="button-group">
+                    <button id="copyResult" class="primary-btn">Copy Result</button>
+                </div>
+            </div>
+            <textarea id="executionResult" readonly placeholder="Executed mapping result will appear here..."></textarea>
+        </div>
+    </div>
+
+    <script src="mapping-tool.js"></script>
+</body>
+</html>

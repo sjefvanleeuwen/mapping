@@ -1,0 +1,529 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f0f0f0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Configuration Panel */
+.config-panel {
+    max-width: 1400px;
+    margin: 0 auto 20px;
+    background: white;
+    padding: 20px;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.config-panel h2 {
+    margin: 0 0 20px 0;
+    color: #333;
+    font-size: 20px;
+}
+
+.config-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.config-section {
+    margin-bottom: 15px;
+}
+
+.config-section label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #555;
+}
+
+.config-section textarea {
+    width: 100%;
+    height: 120px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 13px;
+    resize: vertical;
+}
+
+#sourceDataInput {
+    height: 150px;
+}
+
+.button-group {
+    display: flex;
+    gap: 10px;
+}
+
+.primary-btn {
+    padding: 10px 20px;
+    background: #0078d4;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.2s;
+}
+
+.primary-btn:hover {
+    background: #005a9e;
+}
+
+.secondary-btn {
+    padding: 10px 20px;
+    background: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.2s;
+}
+
+.secondary-btn:hover {
+    background: #545b62;
+}
+
+.execute-btn {
+    padding: 10px 20px;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.2s;
+    font-size: 14px;
+}
+
+.execute-btn:hover {
+    background: #218838;
+}
+
+.mapping-tool {
+    display: grid;
+    grid-template-columns: 250px 1fr 250px;
+    gap: 0;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    overflow: hidden;
+    height: 700px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Schema Panels */
+.schema-panel {
+    background: #f8f8f8;
+    border-right: 1px solid #ccc;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.destination-panel {
+    border-right: none;
+    border-left: 1px solid #ccc;
+}
+
+.panel-header {
+    background: linear-gradient(to bottom, #e8e8e8, #d0d0d0);
+    padding: 10px;
+    font-weight: bold;
+    color: #333;
+    border-bottom: 1px solid #999;
+    font-size: 14px;
+    text-align: center;
+}
+
+.schema-tree {
+    padding: 10px;
+    flex: 1;
+}
+
+.schema-node {
+    display: flex;
+    align-items: center;
+    padding: 4px 8px;
+    margin: 2px 0;
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    border-radius: 3px;
+    transition: background-color 0.2s;
+}
+
+.schema-node:hover {
+    background-color: #e0e0e0;
+}
+
+.schema-node.selected {
+    background-color: #cce8ff;
+    border: 1px solid #0078d4;
+}
+
+.schema-node.root {
+    font-weight: bold;
+    color: #0066cc;
+}
+
+.schema-node.parent {
+    font-weight: 600;
+    color: #333;
+}
+
+.schema-node.leaf {
+    color: #555;
+}
+
+.node-icon {
+    margin-right: 6px;
+    font-size: 14px;
+}
+
+.node-label {
+    font-size: 13px;
+}
+
+.schema-children {
+    margin-left: 20px;
+    border-left: 1px dotted #ccc;
+    padding-left: 5px;
+}
+
+.schema-children.nested {
+    margin-left: 15px;
+}
+
+/* Connector Dots */
+.connector-dot {
+    position: absolute;
+    right: -5px;
+    width: 10px;
+    height: 10px;
+    background: #4a90e2;
+    border: 2px solid white;
+    border-radius: 50%;
+    cursor: crosshair;
+    z-index: 10;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.connector-dot.left {
+    left: -5px;
+    right: auto;
+}
+
+.connector-dot:hover {
+    background: #ff6b6b;
+    transform: scale(1.2);
+}
+
+.connector-dot.active {
+    background: #ff6b6b;
+    animation: pulse 0.5s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.3); }
+}
+
+/* Mapping Canvas */
+.mapping-canvas {
+    position: relative;
+    background: 
+        linear-gradient(rgba(200, 200, 200, 0.2) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(200, 200, 200, 0.2) 1px, transparent 1px);
+    background-size: 20px 20px;
+    background-color: #fafafa;
+    overflow: hidden;
+}
+
+.mapping-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.mapping-line {
+    fill: none;
+    stroke: #333;
+    stroke-width: 2;
+    pointer-events: stroke;
+    cursor: pointer;
+}
+
+.mapping-line:hover {
+    stroke: #ff6b6b;
+    stroke-width: 3;
+}
+
+.mapping-line.temp {
+    stroke: #4a90e2;
+    stroke-dasharray: 5, 5;
+    animation: dash 0.5s linear infinite;
+}
+
+@keyframes dash {
+    to { stroke-dashoffset: -10; }
+}
+
+/* Functoids */
+.functoid-area {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.functoid {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 18px;
+    color: white;
+    cursor: move;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    user-select: none;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.functoid.dragging {
+    opacity: 0.5;
+}
+
+.functoid.string {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.functoid.math {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.functoid.logical {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.functoid.conversion {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+.functoid .delete-btn {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #ff4444;
+    color: white;
+    border: 2px solid white;
+    font-size: 12px;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.functoid:hover .delete-btn {
+    display: flex;
+}
+
+.functoid-connector {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: #ffd700;
+    border: 2px solid white;
+    border-radius: 50%;
+    cursor: crosshair;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.functoid-connector.left {
+    left: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.functoid-connector.right {
+    right: -6px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.functoid-connector:hover {
+    background: #ff6b6b;
+    transform: translateY(-50%) scale(1.2);
+}
+
+/* Functoid Toolbar */
+.functoid-toolbar {
+    margin-top: 20px;
+    padding: 15px;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.toolbar-title {
+    font-weight: bold;
+    margin-right: 10px;
+    color: #333;
+}
+
+.functoid-btn {
+    width: 50px;
+    height: 50px;
+    border: 2px solid #ccc;
+    border-radius: 6px;
+    background: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.functoid-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.functoid-btn[data-type="string"] {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-color: #667eea;
+}
+
+.functoid-btn[data-type="math"] {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    border-color: #f093fb;
+}
+
+.functoid-btn[data-type="logical"] {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+    border-color: #4facfe;
+}
+
+.functoid-btn[data-type="conversion"] {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    color: white;
+    border-color: #43e97b;
+}
+
+.clear-btn {
+    margin-left: auto;
+    padding: 10px 20px;
+    background: #ff4444;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.2s;
+}
+
+.clear-btn:hover {
+    background: #cc0000;
+}
+
+/* Output Panel */
+.output-panel {
+    max-width: 1400px;
+    margin: 20px auto 0;
+    background: white;
+    padding: 20px;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.execution-panel {
+    max-width: 1400px;
+    margin: 20px auto 0;
+    background: #f0fff4;
+    padding: 20px;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border: 2px solid #28a745;
+}
+
+.output-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.output-header h3 {
+    margin: 0;
+    color: #333;
+    font-size: 18px;
+}
+
+#mappingOutput, #executionResult {
+    width: 100%;
+    height: 250px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 13px;
+    background: #f9f9f9;
+    resize: vertical;
+}
+
+#executionResult {
+    background: #ffffff;
+    border: 2px solid #28a745;
+}
+
+/* Scrollbar Styling */
+.schema-panel::-webkit-scrollbar {
+    width: 8px;
+}
+
+.schema-panel::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.schema-panel::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.schema-panel::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
