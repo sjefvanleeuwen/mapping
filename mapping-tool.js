@@ -457,9 +457,9 @@ class MappingTool {
             this.renderSchemas();
             this.clearAllMappings();
             
-            alert('Schemas loaded successfully!');
+            showToast('Schemas loaded successfully!', 'success');
         } catch (error) {
-            alert('Error parsing JSON: ' + error.message);
+            showToast('Error parsing JSON: ' + error.message, 'error');
         }
     }
     
@@ -604,14 +604,14 @@ class MappingTool {
         }
         
         if (!output) {
-            alert('Please generate mapping output first!');
+            showToast('Please generate mapping output first!', 'warning');
             return;
         }
         
         navigator.clipboard.writeText(output).then(() => {
-            alert('Mapping JSON copied to clipboard!');
+            showToast('Mapping JSON copied to clipboard!', 'success');
         }).catch(err => {
-            alert('Failed to copy: ' + err);
+            showToast('Failed to copy: ' + err, 'error');
         });
     }
     
@@ -622,9 +622,9 @@ class MappingTool {
         try {
             const mappingData = JSON.parse(jsonInput);
             this.applyMappingData(mappingData);
-            alert('Mapping loaded successfully!');
+            showToast('Mapping loaded successfully!', 'success');
         } catch (error) {
-            alert('Error loading mapping: ' + error.message);
+            showToast('Error loading mapping: ' + error.message, 'error');
         }
     }
     
@@ -690,7 +690,7 @@ class MappingTool {
         try {
             const sourceDataText = this.getElementValue(document.getElementById('sourceDataInput'));
             if (!sourceDataText) {
-                alert('Please provide source data to execute the mapping!');
+                showToast('Please provide source data to execute the mapping!', 'warning');
                 return;
             }
             
@@ -734,7 +734,7 @@ class MappingTool {
             }
             
         } catch (error) {
-            alert('Error executing mapping: ' + error.message);
+            showToast('Error executing mapping: ' + error.message, 'error');
             console.error(error);
         }
     }
@@ -852,15 +852,457 @@ class MappingTool {
         }
         
         if (!result) {
-            alert('Please execute the mapping first!');
+            showToast('Please execute the mapping first!', 'warning');
             return;
         }
         
         navigator.clipboard.writeText(result).then(() => {
-            alert('Result copied to clipboard!');
+            showToast('Result copied to clipboard!', 'success');
         }).catch(err => {
-            alert('Failed to copy: ' + err);
+            showToast('Failed to copy: ' + err, 'error');
         });
+    }
+    
+    generateCSharpCode() {
+        try {
+            const sourceSchema = this.sourceSchema;
+            const destSchema = this.destinationSchema;
+            
+            if (!sourceSchema || !destSchema) {
+                showToast('Please load schemas first!', 'warning');
+                return '';
+            }
+            
+            const sourceClassName = this.getSchemaName(sourceSchema) || 'SourceModel';
+            const destClassName = this.getSchemaName(destSchema) || 'DestinationModel';
+            
+            let code = `using System;\nusing System.Linq;\n\nnamespace MappingTool.Generated\n{\n`;
+            
+            // Generate source model class
+            code += this.generateCSharpClass(sourceSchema, sourceClassName);
+            code += '\n';
+            
+            // Generate destination model class
+            code += this.generateCSharpClass(destSchema, destClassName);
+            code += '\n';
+            
+            // Generate mapper class
+            code += `    public class DataMapper\n    {\n`;
+            
+            // Generate functoid methods
+            code += this.generateFunctoidMethods();
+            
+            // Generate main mapping method
+            code += `\n        public ${destClassName} Map(${sourceClassName} source)\n        {\n`;
+            code += `            if (source == null) throw new ArgumentNullException(nameof(source));\n\n`;
+            code += `            var destination = new ${destClassName}();\n\n`;
+            
+            // Generate mapping statements
+            if (this.mappings.length === 0) {
+                code += `            // No mappings defined yet\n`;
+                code += `            // Add mappings in the visual tool to generate code here\n`;
+            } else {
+                // Process direct mappings (field to field)
+                const directMappings = this.mappings.filter(m => 
+                    m.source && m.destination && 
+                    m.source.type === 'field' && m.destination.type === 'field'
+                );
+                
+                // Process functoid-based mappings
+                const functoidMappings = this.getFunctoidBasedMappings();
+                
+                const totalOutputMappings = directMappings.length + functoidMappings.length;
+                const sourceFieldMappings = this.mappings.filter(m => m.source && m.source.type === 'field').length;
+                const destFieldMappings = this.mappings.filter(m => m.destination && m.destination.type === 'field').length;
+                
+                code += `            // Mappings: ${sourceFieldMappings} source fields → ${destFieldMappings} destination fields (${totalOutputMappings} assignments)\n`;
+                
+                directMappings.forEach(mapping => {
+                    const mappingCode = this.generateMappingStatement(mapping, 'source', 'destination');
+                    if (mappingCode) {
+                        code += `            ${mappingCode}\n`;
+                    }
+                });
+                
+                functoidMappings.forEach(fm => {
+                    const mappingCode = this.generateFunctoidMappingStatement(fm, 'source', 'destination');
+                    if (mappingCode) {
+                        code += `            ${mappingCode}\n`;
+                    }
+                });
+            }
+            
+            code += `\n            return destination;\n`;
+            code += `        }\n`;
+            code += `    }\n`;
+            code += `}\n`;
+            
+            return code;
+        } catch (error) {
+            showToast('Error generating C# code: ' + error.message, 'error');
+            return '';
+        }
+    }
+    
+    getSchemaName(schema) {
+        if (typeof schema === 'object' && schema !== null) {
+            const keys = Object.keys(schema);
+            if (keys.length > 0) {
+                return keys[0];
+            }
+        }
+        return null;
+    }
+    
+    generateCSharpClass(schema, className) {
+        let code = `    public class ${className}\n    {\n`;
+        
+        // Handle tree-based schema structure
+        if (schema.children && Array.isArray(schema.children)) {
+            schema.children.forEach(child => {
+                if (child.type === 'parent' && child.children) {
+                    // Nested class property
+                    const nestedClassName = this.toPascalCase(child.name);
+                    code += `        public ${nestedClassName} ${nestedClassName} { get; set; }\n`;
+                } else if (child.type === 'field') {
+                    // Simple property
+                    const propName = this.toPascalCase(child.name);
+                    const propType = this.dataTypeToCSharpType(child.dataType);
+                    code += `        public ${propType} ${propName} { get; set; }\n`;
+                }
+            });
+        }
+        
+        code += `    }\n`;
+        
+        // Generate nested classes
+        if (schema.children && Array.isArray(schema.children)) {
+            schema.children.forEach(child => {
+                if (child.type === 'parent' && child.children) {
+                    code += '\n';
+                    code += this.generateNestedCSharpClass(child);
+                }
+            });
+        }
+        
+        return code;
+    }
+    
+    generateNestedCSharpClass(node) {
+        const className = this.toPascalCase(node.name);
+        let code = `    public class ${className}\n    {\n`;
+        
+        if (node.children && Array.isArray(node.children)) {
+            node.children.forEach(child => {
+                if (child.type === 'parent' && child.children) {
+                    // Nested class property
+                    const nestedClassName = this.toPascalCase(child.name);
+                    code += `        public ${nestedClassName} ${nestedClassName} { get; set; }\n`;
+                } else if (child.type === 'field') {
+                    // Simple property
+                    const propName = this.toPascalCase(child.name);
+                    const propType = this.dataTypeToCSharpType(child.dataType);
+                    code += `        public ${propType} ${propName} { get; set; }\n`;
+                }
+            });
+        }
+        
+        code += `    }\n`;
+        
+        // Recursively generate nested classes
+        if (node.children && Array.isArray(node.children)) {
+            node.children.forEach(child => {
+                if (child.type === 'parent' && child.children) {
+                    code += '\n';
+                    code += this.generateNestedCSharpClass(child);
+                }
+            });
+        }
+        
+        return code;
+    }
+    
+    dataTypeToCSharpType(dataType) {
+        const typeMap = {
+            'string': 'string',
+            'number': 'decimal',
+            'boolean': 'bool',
+            'integer': 'int',
+            'date': 'DateTime',
+            'datetime': 'DateTime'
+        };
+        return typeMap[dataType] || 'string';
+    }
+    
+    extractPropertiesRecursive(obj, parentKey = '') {
+        const props = [];
+        
+        if (typeof obj !== 'object' || obj === null) {
+            return props;
+        }
+        
+        // If this is the root schema object, get its first key
+        if (!parentKey) {
+            const rootKeys = Object.keys(obj);
+            if (rootKeys.length > 0) {
+                const rootKey = rootKeys[0];
+                return this.extractPropertiesRecursive(obj[rootKey], rootKey);
+            }
+            return props;
+        }
+        
+        // Extract properties from this level
+        Object.keys(obj).forEach(key => {
+            const value = obj[key];
+            const propName = this.toPascalCase(key);
+            
+            if (value === null) {
+                props.push({ name: propName, type: 'string' });
+            } else if (Array.isArray(value)) {
+                if (value.length > 0 && typeof value[0] === 'object') {
+                    props.push({ name: propName, type: 'List<object>' });
+                } else {
+                    props.push({ name: propName, type: 'List<string>' });
+                }
+            } else if (typeof value === 'object') {
+                // Nested object - create nested class
+                const nestedClassName = propName;
+                props.push({ name: propName, type: nestedClassName });
+            } else {
+                const csharpType = this.inferCSharpType(value);
+                props.push({ name: propName, type: csharpType });
+            }
+        });
+        
+        return props;
+    }
+    
+    toPascalCase(str) {
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+    
+    inferCSharpType(value) {
+        if (typeof value === 'string') return 'string';
+        if (typeof value === 'number') {
+            return Number.isInteger(value) ? 'int' : 'decimal';
+        }
+        if (typeof value === 'boolean') return 'bool';
+        return 'object';
+    }
+    
+    extractProperties(schema, prefix = '') {
+        const props = [];
+        
+        if (typeof schema !== 'object' || schema === null) {
+            return props;
+        }
+        
+        // Get the root object
+        const rootKey = Object.keys(schema)[0];
+        const rootObj = schema[rootKey];
+        
+        if (typeof rootObj === 'object' && rootObj !== null) {
+            Object.keys(rootObj).forEach(key => {
+                const value = rootObj[key];
+                const propName = key.charAt(0).toUpperCase() + key.slice(1);
+                
+                if (typeof value === 'object' && value !== null) {
+                    props.push({ name: propName, type: 'object' });
+                } else {
+                    props.push({ name: propName, type: typeof value });
+                }
+            });
+        }
+        
+        return props;
+    }
+    
+    jsonTypeToCSharpType(type) {
+        const typeMap = {
+            'string': 'string',
+            'number': 'decimal',
+            'boolean': 'bool',
+            'object': 'object',
+            'array': 'List<object>'
+        };
+        return typeMap[type] || 'object';
+    }
+    
+    generateFunctoidMethods() {
+        let code = '';
+        const functoidTypes = new Set();
+        
+        // Collect unique functoid types used
+        this.functoids.forEach(f => functoidTypes.add(f.type));
+        
+        if (functoidTypes.has('string')) {
+            code += `        private string StringConcat(params object[] values)\n`;
+            code += `        {\n`;
+            code += `            return string.Join("", values.Select(v => v?.ToString() ?? ""));\n`;
+            code += `        }\n\n`;
+        }
+        
+        if (functoidTypes.has('math')) {
+            code += `        private decimal MathOperation(params decimal[] values)\n`;
+            code += `        {\n`;
+            code += `            return values.Sum();\n`;
+            code += `        }\n\n`;
+        }
+        
+        if (functoidTypes.has('logical')) {
+            code += `        private bool LogicalAnd(params bool[] values)\n`;
+            code += `        {\n`;
+            code += `            return values.All(v => v);\n`;
+            code += `        }\n\n`;
+        }
+        
+        if (functoidTypes.has('conversion')) {
+            code += `        private T Convert<T>(object value)\n`;
+            code += `        {\n`;
+            code += `            return (T)System.Convert.ChangeType(value, typeof(T));\n`;
+            code += `        }\n\n`;
+        }
+        
+        return code;
+    }
+    
+    generateMappingStatement(mapping, sourceVar, destVar) {
+        if (!mapping.source || !mapping.destination) {
+            return null;
+        }
+        
+        const sourcePath = this.getPropertyPath(mapping.source.path);
+        const destPath = this.getPropertyPath(mapping.destination.path);
+        
+        if (!sourcePath || !destPath) {
+            return null;
+        }
+        
+        // Simple direct mapping
+        return `${destVar}.${destPath} = ${sourceVar}.${sourcePath};`;
+    }
+    
+    getFunctoidBasedMappings() {
+        const functoidMappings = [];
+        
+        // For each functoid, find its input and output mappings
+        this.functoids.forEach(functoid => {
+            const inputMappings = this.mappings.filter(m => 
+                m.destination && m.destination.type === 'functoid' && 
+                m.destination.functoidId === functoid.id
+            );
+            
+            const outputMappings = this.mappings.filter(m => 
+                m.source && m.source.type === 'functoid' && 
+                m.source.functoidId === functoid.id
+            );
+            
+            // Create a mapping for each output
+            outputMappings.forEach(outputMapping => {
+                functoidMappings.push({
+                    functoid: functoid,
+                    inputs: inputMappings,
+                    output: outputMapping
+                });
+            });
+        });
+        
+        return functoidMappings;
+    }
+    
+    generateFunctoidMappingStatement(fm, sourceVar, destVar) {
+        if (!fm.output || !fm.output.destination || fm.inputs.length === 0) {
+            return null;
+        }
+        
+        const destPath = this.getPropertyPath(fm.output.destination.path);
+        if (!destPath) return null;
+        
+        // Get all input paths
+        const inputPaths = fm.inputs
+            .map(m => m.source ? this.getPropertyPath(m.source.path) : null)
+            .filter(p => p !== null);
+        
+        if (inputPaths.length === 0) return null;
+        
+        // Generate the functoid call
+        const functoidCall = this.generateFunctoidCallWithInputs(
+            fm.functoid.type, 
+            sourceVar, 
+            inputPaths
+        );
+        
+        return `${destVar}.${destPath} = ${functoidCall};`;
+    }
+    
+    generateFunctoidCallWithInputs(functoidType, sourceVar, inputPaths) {
+        const inputs = inputPaths.map(p => `${sourceVar}.${p}`).join(', ');
+        
+        switch (functoidType) {
+            case 'string':
+                return `StringConcat(${inputs})`;
+            case 'math':
+                return `MathOperation(${inputs})`;
+            case 'logical':
+                return `LogicalAnd(${inputs})`;
+            case 'conversion':
+                if (inputPaths.length > 0) {
+                    return `Convert<string>(${sourceVar}.${inputPaths[0]})`;
+                }
+                return `Convert<string>(null)`;
+            default:
+                return inputs;
+        }
+    }
+    
+    getPropertyPath(path) {
+        if (!path) {
+            return null;
+        }
+        
+        const parts = path.split('.');
+        
+        if (parts.length > 1) {
+            // Skip first part (schema name) and convert remaining to PascalCase
+            const result = parts.slice(1).map(p => 
+                p.charAt(0).toUpperCase() + p.slice(1)
+            ).join('.');
+            return result;
+        }
+        
+        return null;
+    }
+    
+    findFunctoidInMapping(mapping) {
+        // Find functoid connected to this mapping
+        for (const functoid of this.functoids) {
+            const hasSourceConnection = this.mappings.some(m => 
+                m.destination && m.destination.element === functoid.element
+            );
+            const hasDestConnection = this.mappings.some(m => 
+                m.source && m.source.element === functoid.element
+            );
+            
+            if (hasSourceConnection && hasDestConnection) {
+                return functoid;
+            }
+        }
+        return null;
+    }
+    
+    generateFunctoidCall(functoid, sourceVar, sourcePath) {
+        switch (functoid.type) {
+            case 'string':
+                return `StringConcat(${sourceVar}.${sourcePath})`;
+            case 'math':
+                return `MathOperation(${sourceVar}.${sourcePath})`;
+            case 'logical':
+                return `LogicalAnd(${sourceVar}.${sourcePath})`;
+            case 'conversion':
+                return `Convert<string>(${sourceVar}.${sourcePath})`;
+            default:
+                return `${sourceVar}.${sourcePath}`;
+        }
     }
     
     handleConnectorClick(e) {
@@ -922,10 +1364,16 @@ class MappingTool {
         const path = this.createCurvePath(pos1.x, pos1.y, pos2.x, pos2.y);
         line.setAttribute('d', path);
         
-        // Store mapping data
+        // Get connector information
+        const sourceInfo = this.getConnectorInfo(connector1);
+        const destInfo = this.getConnectorInfo(connector2);
+        
+        // Store mapping data with source and destination paths
         const mapping = {
             connector1,
             connector2,
+            source: sourceInfo,
+            destination: destInfo,
             line,
             id: Date.now()
         };
@@ -1119,7 +1567,6 @@ class MappingTool {
     
     clearAllMappings() {
         if (this.mappings.length === 0 && this.functoids.length === 0) {
-            alert('No mappings to clear!');
             return;
         }
         

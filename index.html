@@ -25,6 +25,10 @@
     <link rel="stylesheet" href="https://unpkg.com/admin-lte@4.0.0-beta3/dist/css/adminlte.min.css" crossorigin="anonymous" />
     <!--end::Required Plugin(AdminLTE)-->
     
+    <!--begin::Toastify CSS-->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.css" crossorigin="anonymous" />
+    <!--end::Toastify CSS-->
+    
     <!-- Custom Styles for Mapping Tool -->
     <link rel="stylesheet" href="mapping-styles.css">
     
@@ -544,6 +548,11 @@
                                         <i class="bi bi-play-circle me-1"></i>output.json
                                     </button>
                                 </li>
+                                <li class="nav-item">
+                                    <button class="nav-link terminal-tab" id="csharp-tab" data-bs-toggle="tab" data-bs-target="#csharp-content" type="button" role="tab">
+                                        <i class="bi bi-filetype-cs me-1"></i>mapper.cs
+                                    </button>
+                                </li>
                                 <li class="nav-item ms-auto" style="display: flex; align-items: center; padding-right: 0.5rem;">
                                     <span class="badge bg-info me-2" id="mappingCount" style="font-size: 0.7rem; font-family: 'Consolas', monospace;">0 mappings</span>
                                     <button class="btn btn-sm btn-link text-white p-0" id="toggleFullscreen" title="Toggle Fullscreen" style="font-size: 1rem; line-height: 1;">
@@ -625,6 +634,22 @@
                                         <json-viewer id="executionResult" style="flex: 1; min-height: 100px;"></json-viewer>
                                     </div>
                                 </div>
+
+                                <!-- mapper.cs Tab -->
+                                <div class="tab-pane fade" id="csharp-content" role="tabpanel" style="padding: 0; margin: 0;">
+                                    <div class="terminal-toolbar" style="flex-shrink: 0;">
+                                        <button class="btn btn-sm btn-primary me-1" id="generateCSharp" title="Generate C# Code">
+                                            <i class="bi bi-code-slash me-1"></i>Generate
+                                        </button>
+                                        <button class="btn btn-sm btn-secondary" id="copyCSharp" title="Copy to Clipboard">
+                                            <i class="bi bi-clipboard me-1"></i>Copy
+                                        </button>
+                                    </div>
+                                    <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden; padding: 0; margin: 0;">
+                                        <label class="terminal-label" style="margin: 0;">Generated C# Mapper Class:</label>
+                                        <csharp-viewer id="csharpOutput" style="flex: 1; min-height: 100px;"></csharp-viewer>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -653,9 +678,59 @@
     <script src="https://unpkg.com/admin-lte@4.0.0-beta3/dist/js/adminlte.min.js" crossorigin="anonymous"></script>
     <!--end::Required Plugin(AdminLTE)-->
     
+    <!--begin::Toastify JS-->
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.js" crossorigin="anonymous"></script>
+    <!--end::Toastify JS-->
+    
     <!--begin::Split.js for Resizable Panes-->
     <script src="https://cdn.jsdelivr.net/npm/split.js@1.6.5/dist/split.min.js"></script>
     <!--end::Split.js-->
+    
+    <!--begin::Toast Helper Function-->
+    <script>
+        // Global toast notification helper
+        window.showToast = function(message, type = 'info') {
+            const styles = {
+                success: {
+                    background: '#10b981',
+                    color: '#ffffff'
+                },
+                error: {
+                    background: '#ef4444',
+                    color: '#ffffff'
+                },
+                warning: {
+                    background: '#f59e0b',
+                    color: '#000000'
+                },
+                info: {
+                    background: '#3b82f6',
+                    color: '#ffffff'
+                }
+            };
+            
+            const style = styles[type] || styles.info;
+            
+            Toastify({
+                text: message,
+                duration: 3000,
+                gravity: "bottom",
+                position: "right",
+                stopOnFocus: true,
+                style: {
+                    background: style.background,
+                    color: style.color,
+                    borderRadius: "4px",
+                    fontFamily: "'Consolas', 'Courier New', monospace",
+                    fontSize: "0.85rem",
+                    fontWeight: "500",
+                    minWidth: "300px",
+                    maxWidth: "300px"
+                }
+            }).showToast();
+        };
+    </script>
+    <!--end::Toast Helper Function-->
     
     <!--begin::OverlayScrollbars Configure-->
     <script>
@@ -687,8 +762,56 @@
     <!-- JSON Editor Web Component -->
     <script src="components/json-editor.js"></script>
     
+    <!-- C# Viewer Web Component -->
+    <script src="components/csharp-viewer.js"></script>
+    
     <!-- Mapping Tool Core Logic -->
     <script src="mapping-tool.js"></script>
+    
+    <!-- Global Helper Functions -->
+    <script>
+        // Format JSON functions for toolbar buttons
+        function formatSchemaJSON() {
+            const sourceInput = document.getElementById('sourceSchemaInput');
+            const destInput = document.getElementById('destSchemaInput');
+            
+            if (sourceInput && sourceInput.getValue) {
+                try {
+                    const json = JSON.parse(sourceInput.getValue());
+                    sourceInput.setValue(JSON.stringify(json, null, 2));
+                } catch (e) {
+                    showToast('Invalid JSON in Source Schema', 'error');
+                }
+            }
+            
+            if (destInput && destInput.getValue) {
+                try {
+                    const json = JSON.parse(destInput.getValue());
+                    destInput.setValue(JSON.stringify(json, null, 2));
+                } catch (e) {
+                    showToast('Invalid JSON in Destination Schema', 'error');
+                }
+            }
+        }
+        
+        function formatSampleJSON() {
+            const sampleInput = document.getElementById('sourceDataInput');
+            if (sampleInput && sampleInput.getValue) {
+                try {
+                    const json = JSON.parse(sampleInput.getValue());
+                    sampleInput.setValue(JSON.stringify(json, null, 2));
+                } catch (e) {
+                    showToast('Invalid JSON in Sample Data', 'error');
+                }
+            }
+        }
+        
+        function clearAll() {
+            if (window.mappingToolInstance && window.mappingToolInstance.clearAllMappings) {
+                window.mappingToolInstance.clearAllMappings();
+            }
+        }
+    </script>
     
     <!-- Sidebar Navigation Handlers -->
     <script>
@@ -760,6 +883,35 @@
                     });
                 } else {
                     document.exitFullscreen();
+                }
+            });
+            
+            // C# Code Generation
+            document.getElementById('generateCSharp')?.addEventListener('click', function() {
+                if (window.mappingToolInstance) {
+                    const csharpCode = window.mappingToolInstance.generateCSharpCode();
+                    const outputElement = document.getElementById('csharpOutput');
+                    if (outputElement && csharpCode) {
+                        // Use the setCode method for csharp-viewer
+                        outputElement.setCode(csharpCode);
+                        showToast('C# code generated successfully!', 'success');
+                    }
+                }
+            });
+            
+            document.getElementById('copyCSharp')?.addEventListener('click', function() {
+                const outputElement = document.getElementById('csharpOutput');
+                if (outputElement) {
+                    const code = outputElement.getText();
+                    if (!code) {
+                        showToast('Please generate C# code first!', 'warning');
+                        return;
+                    }
+                    navigator.clipboard.writeText(code).then(() => {
+                        showToast('C# code copied to clipboard!', 'success');
+                    }).catch(err => {
+                        showToast('Failed to copy: ' + err, 'error');
+                    });
                 }
             });
             
