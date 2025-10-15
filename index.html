@@ -97,6 +97,42 @@
             padding: 0.4rem 0.75rem !important;
         }
         
+        /* Navbar dropdown menu styling */
+        .navbar .dropdown-menu {
+            max-height: 400px;
+            overflow-y: auto;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+        
+        .navbar .dropdown-item {
+            padding: 0.4rem 1rem;
+            font-size: 0.875rem;
+            transition: background-color 0.15s ease-in-out;
+        }
+        
+        .navbar .dropdown-item:hover {
+            background-color: rgba(0, 123, 255, 0.1);
+        }
+        
+        .navbar .dropdown-item.functoid-btn {
+            cursor: move;
+        }
+        
+        .navbar .dropdown-item.functoid-btn:active {
+            cursor: grabbing;
+        }
+        
+        .navbar .dropdown-header {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #6c757d;
+            padding: 0.5rem 1rem 0.25rem;
+        }
+        
+        .navbar .dropdown-divider {
+            margin: 0.25rem 0;
+        }
+        
         /* When sidebar is collapsed, adjust header margin */
         body.sidebar-collapse .app-header {
             margin-left: calc(4.6rem + 1px) !important;
@@ -488,6 +524,54 @@
                         <a class="nav-link" data-lte-toggle="sidebar" href="#" role="button">
                             <i class="bi bi-list"></i>
                         </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link" data-bs-toggle="dropdown" href="#" role="button">
+                            <i class="bi bi-box me-1"></i> Functoids
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-lg">
+                            <span class="dropdown-item dropdown-header">String Functions</span>
+                            <div class="dropdown-divider"></div>
+                            <a href="#" class="dropdown-item functoid-btn" data-type="string" draggable="true">
+                                <i class="bi bi-fonts me-2"></i> String
+                            </a>
+                            <a href="#" class="dropdown-item functoid-btn" data-type="concat" draggable="true">
+                                <i class="bi bi-plus-circle me-2"></i> Concatenate
+                            </a>
+                            <a href="#" class="dropdown-item functoid-btn" data-type="substring" draggable="true">
+                                <i class="bi bi-scissors me-2"></i> Substring
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <span class="dropdown-item dropdown-header">Math Functions</span>
+                            <div class="dropdown-divider"></div>
+                            <a href="#" class="dropdown-item functoid-btn" data-type="math" draggable="true">
+                                <i class="bi bi-calculator me-2"></i> Math
+                            </a>
+                            <a href="#" class="dropdown-item functoid-btn" data-type="add" draggable="true">
+                                <i class="bi bi-plus-lg me-2"></i> Add
+                            </a>
+                            <a href="#" class="dropdown-item functoid-btn" data-type="multiply" draggable="true">
+                                <i class="bi bi-x-lg me-2"></i> Multiply
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <span class="dropdown-item dropdown-header">Logical Functions</span>
+                            <div class="dropdown-divider"></div>
+                            <a href="#" class="dropdown-item functoid-btn" data-type="logical" draggable="true">
+                                <i class="bi bi-check-square me-2"></i> Logical
+                            </a>
+                            <a href="#" class="dropdown-item functoid-btn" data-type="conditional" draggable="true">
+                                <i class="bi bi-question-circle me-2"></i> Conditional
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <span class="dropdown-item dropdown-header">Date Functions</span>
+                            <div class="dropdown-divider"></div>
+                            <a href="#" class="dropdown-item functoid-btn" data-type="date" draggable="true">
+                                <i class="bi bi-calendar-event me-2"></i> Date
+                            </a>
+                            <a href="#" class="dropdown-item functoid-btn" data-type="dateformat" draggable="true">
+                                <i class="bi bi-calendar3 me-2"></i> Format Date
+                            </a>
+                        </div>
                     </li>
                 </ul>
                 <!--end::Start Navbar Links-->
@@ -909,23 +993,56 @@
                 new lte.Treeview(treeviewEl);
             }
             
-            // Listen to AdminLTE's built-in sidebar toggle event
+            // Function to redraw connectors
+            function redrawConnectors() {
+                if (window.mappingToolInstance && window.mappingToolInstance.updateAllMappingLines) {
+                    window.mappingToolInstance.updateAllMappingLines();
+                }
+            }
+            
+            // Listen to AdminLTE 4's built-in sidebar toggle events
             document.addEventListener('lte.pushmenu.collapsed', () => {
-                // Redraw mapping lines after sidebar animation
-                setTimeout(() => {
-                    if (window.mappingToolInstance && window.mappingToolInstance.updateAllMappingLines) {
-                        window.mappingToolInstance.updateAllMappingLines();
-                    }
-                }, 300);
+                setTimeout(redrawConnectors, 300);
             });
             
             document.addEventListener('lte.pushmenu.expanded', () => {
-                // Redraw mapping lines after sidebar animation
-                setTimeout(() => {
-                    if (window.mappingToolInstance && window.mappingToolInstance.updateAllMappingLines) {
-                        window.mappingToolInstance.updateAllMappingLines();
+                setTimeout(redrawConnectors, 300);
+            });
+            
+            // Also listen to older AdminLTE 3 events for compatibility
+            document.addEventListener('collapsed.lte.pushmenu', () => {
+                setTimeout(redrawConnectors, 300);
+            });
+            
+            document.addEventListener('shown.lte.pushmenu', () => {
+                setTimeout(redrawConnectors, 300);
+            });
+            
+            // Listen to sidebar element transition end for more accurate timing
+            const sidebar = document.querySelector('.app-sidebar');
+            if (sidebar) {
+                sidebar.addEventListener('transitionend', (e) => {
+                    // Only redraw on width/margin transitions (not all transitions)
+                    if (e.propertyName === 'margin-left' || e.propertyName === 'width') {
+                        redrawConnectors();
                     }
-                }, 300);
+                });
+            }
+            
+            // Direct listener on the hamburger button as fallback
+            const sidebarToggle = document.querySelector('[data-lte-toggle="sidebar"]');
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', () => {
+                    // Wait for animation to complete
+                    setTimeout(redrawConnectors, 350);
+                });
+            }
+            
+            // Listen to window resize events to redraw connectors
+            let resizeTimeout;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(redrawConnectors, 150);
             });
         });
     </script>
@@ -1015,16 +1132,24 @@
             });
             
             // Functoid sidebar links - handle both class and data-functoid for backwards compatibility
-            document.querySelectorAll('.functoid-btn, [data-functoid]').forEach(link => {
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const type = link.getAttribute('data-type') || link.getAttribute('data-functoid');
-                    // Access the global MappingTool instance
-                    if (window.mappingToolInstance && type) {
-                        window.mappingToolInstance.addFunctoid(type);
-                    }
-                });
-            });
+            // Use event delegation to avoid multiple handlers on the same element
+            const handleFunctoidClick = (e) => {
+                const target = e.target.closest('.functoid-btn, [data-functoid]');
+                if (!target) return;
+                
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation(); // Prevent other handlers from firing
+                
+                const type = target.getAttribute('data-type') || target.getAttribute('data-functoid');
+                // Access the global MappingTool instance
+                if (window.mappingToolInstance && type) {
+                    window.mappingToolInstance.addFunctoid(type);
+                }
+            };
+            
+            // Add event listener to document for event delegation
+            document.addEventListener('click', handleFunctoidClick, true); // Use capture phase
             
             // Update mapping count
             function updateMappingCount() {
