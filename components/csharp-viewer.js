@@ -76,25 +76,50 @@ class CSharpViewer extends HTMLElement {
             'orderby', 'group', 'by', 'into', 'on', 'equals', 'ascending', 'descending'
         ];
         
-        // Highlight comments (// and /* */)
-        code = code.replace(/(\/\/.*?$)/gm, '<span class="cs-comment">$1</span>');
-        code = code.replace(/(\/\*[\s\S]*?\*\/)/g, '<span class="cs-comment">$1</span>');
+        // Use placeholders to protect already-highlighted content
+        const protectedSections = [];
+        let protectIndex = 0;
         
-        // Highlight strings
-        code = code.replace(/("(?:[^"\\]|\\.)*")/g, '<span class="cs-string">$1</span>');
+        // 1. Protect and highlight comments first (they have highest priority)
+        code = code.replace(/(\/\/.*?$)/gm, (match) => {
+            const placeholder = `___PROTECTED_${protectIndex}___`;
+            protectedSections[protectIndex] = `<span class="cs-comment">${match}</span>`;
+            protectIndex++;
+            return placeholder;
+        });
         
-        // Highlight numbers
+        code = code.replace(/(\/\*[\s\S]*?\*\/)/g, (match) => {
+            const placeholder = `___PROTECTED_${protectIndex}___`;
+            protectedSections[protectIndex] = `<span class="cs-comment">${match}</span>`;
+            protectIndex++;
+            return placeholder;
+        });
+        
+        // 2. Protect and highlight strings
+        code = code.replace(/("(?:[^"\\]|\\.)*")/g, (match) => {
+            const placeholder = `___PROTECTED_${protectIndex}___`;
+            protectedSections[protectIndex] = `<span class="cs-string">${match}</span>`;
+            protectIndex++;
+            return placeholder;
+        });
+        
+        // 3. Highlight numbers (only outside strings/comments)
         code = code.replace(/\b(\d+\.?\d*[fFdDmM]?)\b/g, '<span class="cs-number">$1</span>');
         
-        // Highlight keywords
+        // 4. Highlight keywords (only outside strings/comments)
         const keywordPattern = new RegExp(`\\b(${keywords.join('|')})\\b`, 'g');
         code = code.replace(keywordPattern, '<span class="cs-keyword">$1</span>');
         
-        // Highlight types (PascalCase words)
-        code = code.replace(/\b([A-Z][a-zA-Z0-9]*(?:&lt;[^&]*&gt;)?)\b/g, '<span class="cs-type">$1</span>');
+        // 5. Highlight types - PascalCase words (only outside strings/comments)
+        code = code.replace(/\b([A-Z][a-zA-Z0-9]*(?:&lt;[^&]*&gt;)?)\b(?![^<]*<\/span>)/g, '<span class="cs-type">$1</span>');
         
-        // Highlight method calls
+        // 6. Highlight method calls (only outside strings/comments)
         code = code.replace(/\b([a-zA-Z_][a-zA-Z0-9_]*)\s*(?=\()/g, '<span class="cs-method">$1</span>');
+        
+        // 7. Restore protected sections (comments and strings)
+        protectedSections.forEach((section, index) => {
+            code = code.replace(`___PROTECTED_${index}___`, section);
+        });
         
         return code;
     }

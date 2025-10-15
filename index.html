@@ -573,11 +573,18 @@
                                             <i class="bi bi-code-square me-1"></i>Format
                                         </button>
                                     </div>
-                                    <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden; padding: 0; margin: 0;">
-                                        <label class="terminal-label" style="margin: 0;">Source Schema:</label>
-                                        <json-editor id="sourceSchemaInput" rows="4" style="flex: 1; min-height: 60px;"></json-editor>
-                                        <label class="terminal-label" style="margin: 0;">Destination Schema:</label>
-                                        <json-editor id="destSchemaInput" rows="4" style="flex: 1; min-height: 60px;"></json-editor>
+                                    <!-- Split layout: Source and Destination side by side -->
+                                    <div style="flex: 1; display: flex; flex-direction: row !important; overflow: hidden; padding: 0; margin: 0; gap: 2px; background: #1e1e1e;">
+                                        <!-- Left: Source Schema -->
+                                        <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden; padding: 0; margin: 0; min-width: 0;">
+                                            <label class="terminal-label" style="margin: 0; flex-shrink: 0;">Source Schema:</label>
+                                            <json-editor id="sourceSchemaInput" rows="4" style="flex: 1; min-height: 60px; width: 100%;"></json-editor>
+                                        </div>
+                                        <!-- Right: Destination Schema -->
+                                        <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden; padding: 0; margin: 0; min-width: 0;">
+                                            <label class="terminal-label" style="margin: 0; flex-shrink: 0;">Destination Schema:</label>
+                                            <json-editor id="destSchemaInput" rows="4" style="flex: 1; min-height: 60px; width: 100%;"></json-editor>
+                                        </div>
                                     </div>
                                 </div>
 
