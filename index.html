@@ -33,6 +33,25 @@
     <link rel="stylesheet" href="mapping-styles.css">
     
     <style>
+        /* CRITICAL: Make hamburger menu visible */
+        .app-header .navbar-nav .nav-link {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            min-width: 40px !important;
+            min-height: 40px !important;
+        }
+        
+        .app-header .bi-list {
+            font-size: 1.5rem !important;
+            display: inline-block !important;
+            line-height: 1 !important;
+        }
+        
+        .app-header .bi-list::before {
+            display: inline-block !important;
+        }
+        
         /* Debug: Ensure functoid menu items are visible */
         #functoids {
             display: block !important;
@@ -45,7 +64,7 @@
             display: flex !important;
         }
         
-        /* Fixed Layout with Split.js - Override AdminLTE */
+        /* Fixed Layout with Split.js - Work with AdminLTE grid */
         body.layout-fixed {
             overflow: hidden !important;
             margin: 0;
@@ -57,11 +76,30 @@
             height: 100%;
         }
         
+        /* Don't override app-wrapper - let AdminLTE handle it with grid */
         .app-wrapper {
-            height: 100vh !important;
-            display: flex !important;
-            flex-direction: column !important;
             min-height: 100vh;
+        }
+        
+        /* Ensure header is positioned correctly with grid layout */
+        .app-header {
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 1040 !important; /* Below sidebar but still sticky */
+            margin-left: 250px !important; /* Start after sidebar */
+            transition: margin-left 0.3s ease-in-out;
+            min-height: 2.5rem !important; /* Compact height */
+            max-height: 2.5rem !important;
+        }
+        
+        /* Make navbar items more compact */
+        .app-header .navbar-nav .nav-link {
+            padding: 0.4rem 0.75rem !important;
+        }
+        
+        /* When sidebar is collapsed, adjust header margin */
+        body.sidebar-collapse .app-header {
+            margin-left: calc(4.6rem + 1px) !important;
         }
         
         .app-sidebar {
@@ -69,13 +107,7 @@
             height: 100vh !important;
             top: 0 !important;
             left: 0;
-            transition: left 0.3s ease, margin-left 0.3s ease;
             z-index: 1050;
-        }
-        
-        /* AdminLTE sidebar collapsed state */
-        body.sidebar-collapse .app-sidebar {
-            margin-left: -250px;
         }
         
         .app-main {
@@ -83,25 +115,34 @@
             overflow: hidden !important;
             position: relative !important;
             min-height: 0 !important;
-            margin-left: 250px; /* Sidebar width */
-            height: 100vh !important; /* Full viewport height */
-            transition: margin-left 0.3s ease;
+            display: block !important;
+            transition: margin-left 0.3s ease-in-out;
         }
         
-        /* When sidebar is collapsed, expand main content */
-        body.sidebar-collapse .app-main {
-            margin-left: 0;
+        /* Layout-fixed overrides for app-main positioning */
+        body.layout-fixed .app-main {
+            margin-left: 250px !important; /* Sidebar width */
+            margin-top: 2.5rem !important; /* Compact navbar height */
+            height: calc(100vh - 2.5rem) !important;
+            box-sizing: border-box !important;
+            padding: 0 !important;
+            border: none !important;
         }
         
-        /* Split.js Container */
+        /* When sidebar is collapsed to mini mode */
+        body.layout-fixed.sidebar-collapse .app-main {
+            margin-left: calc(4.6rem + 1px) !important; /* Mini sidebar width */
+        }
+        
+        /* Split.js Container - fills app-main exactly */
         #splitContainer {
             height: 100%;
             width: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            position: relative; /* Changed from absolute */
+            overflow: hidden; /* Prevent overflow */
+            box-sizing: border-box !important;
+            margin: 0 !important;
+            padding: 0 !important;
         }
         
         /* Split.js Styling */
@@ -109,15 +150,53 @@
             display: flex;
             flex-direction: column;
             height: 100%;
+            overflow: hidden; /* Prevent overflow */
+            box-sizing: border-box !important;
         }
         
         .split-panel {
-            overflow: auto;
-            box-sizing: border-box;
+            overflow: hidden; /* Changed from auto to hidden */
+            box-sizing: border-box !important;
+            display: flex; /* Make it a flex container */
+            flex-direction: column; /* Stack children vertically */
+            border: none !important;
+        }
+        
+        /* Ensure cards inside split panels fill available space */
+        .split-panel > .card {
+            flex: 1 1 auto !important;
+            min-height: 0 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            border: none !important;
+            margin: 0 !important;
+        }
+        
+        .split-panel > .card > .card-body {
+            flex: 1 1 auto !important;
+            min-height: 0 !important;
+            overflow: hidden !important;
         }
         
         #mappingPanel {
             overflow: hidden !important;
+        }
+        
+        /* Ensure terminal panel fits exactly */
+        #configPanel {
+            overflow: hidden !important;
+            display: flex !important;
+            flex-direction: column !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        
+        #configPanel .terminal-panel {
+            flex: 1 1 auto; /* Take all available space */
+            min-height: 0; /* Allow shrinking */
+            overflow: hidden;
+            margin: 0 !important;
+            height: auto !important; /* Override inline height: 100% */
         }
         
         .gutter {
@@ -231,6 +310,19 @@
         .terminal-panel {
             background: #1e1e1e !important;
             border: none !important;
+            display: flex !important;
+            flex-direction: column !important;
+            margin: 0 !important;
+        }
+        
+        .terminal-panel .card-header {
+            flex-shrink: 0 !important; /* Don't shrink header */
+        }
+        
+        .terminal-panel .card-body {
+            flex: 1 1 auto !important; /* Take remaining space */
+            min-height: 0 !important; /* Allow shrinking */
+            overflow: hidden !important;
         }
         
         .terminal-header {
@@ -263,12 +355,13 @@
         .terminal-input, .terminal-output {
             width: 100%;
             background: #1e1e1e !important;
-            border: 1px solid #3c3c3c !important;
+            border: none !important; /* Remove border */
             color: #d4d4d4 !important;
             font-family: 'Consolas', 'Courier New', monospace !important;
             font-size: 0.75rem !important;
-            padding: 0.5rem !important;
+            padding: 0.25rem 0.5rem !important; /* Reduced padding */
             resize: vertical;
+            margin: 0 !important;
         }
         
         .terminal-input:focus, .terminal-output:focus {
@@ -282,7 +375,7 @@
             font-family: 'Consolas', 'Courier New', monospace !important;
             font-size: 0.75rem !important;
             margin: 0 !important;
-            padding: 0.1rem 0.25rem !important;
+            padding: 0.1rem 0.5rem !important; /* Reduced padding */
             background: #252526 !important;
             display: block;
             line-height: 1.2;
@@ -290,11 +383,11 @@
         
         .terminal-toolbar {
             background: #2d2d30 !important;
-            padding: 0.1rem 0.25rem !important;
+            padding: 0.1rem 0.5rem !important; /* Slightly more horizontal padding */
             border-bottom: 1px solid #3c3c3c !important;
             display: flex;
             align-items: center;
-            gap: 0.15rem;
+            gap: 0.25rem; /* Slightly more gap */
             min-height: 24px;
         }
         
@@ -307,17 +400,33 @@
         .terminal-body {
             background: #1e1e1e !important;
             color: #d4d4d4 !important;
+            padding: 0 !important; /* Remove all padding */
+            overflow: hidden !important; /* Prevent overflow */
+            flex: 1 1 auto !important; /* Take remaining space */
+            min-height: 0 !important; /* Allow shrinking */
+            display: flex !important;
+            flex-direction: column !important;
         }
         
         /* Fix tab panes to show properly */
         .terminal-body .tab-content {
-            height: 100%;
+            flex: 1 1 auto !important;
+            padding: 0 !important; /* Remove padding */
+            overflow: hidden !important; /* Prevent overflow */
+            min-height: 0 !important;
+            display: flex !important;
+            flex-direction: column !important;
         }
         
         .terminal-body .tab-pane {
             display: none;
-            height: 100%;
+            flex: 1 1 auto;
             flex-direction: column;
+            padding: 0 !important; /* Remove padding */
+            overflow: hidden !important;
+            min-height: 0 !important;
+            margin: 0 !important;
+            overflow: auto; /* Allow scrolling within pane */
         }
         
         .terminal-body .tab-pane.show.active {
@@ -366,15 +475,46 @@
         }
     </style>
 </head>
-<body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
+<body class="layout-fixed sidebar-expand-lg sidebar-mini bg-body-tertiary">
     <!--begin::App Wrapper-->
     <div class="app-wrapper">
+        <!--begin::Header-->
+        <nav class="app-header navbar navbar-expand bg-body">
+            <!--begin::Container-->
+            <div class="container-fluid">
+                <!--begin::Start Navbar Links-->
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" data-lte-toggle="sidebar" href="#" role="button">
+                            <i class="bi bi-list"></i>
+                        </a>
+                    </li>
+                </ul>
+                <!--end::Start Navbar Links-->
+                
+                <!--begin::End Navbar Links-->
+                <ul class="navbar-nav ms-auto">
+                    <!--begin::Fullscreen Toggle-->
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-lte-toggle="fullscreen">
+                            <i data-lte-icon="maximize" class="bi bi-arrows-fullscreen"></i>
+                            <i data-lte-icon="minimize" class="bi bi-fullscreen-exit" style="display: none;"></i>
+                        </a>
+                    </li>
+                    <!--end::Fullscreen Toggle-->
+                </ul>
+                <!--end::End Navbar Links-->
+            </div>
+            <!--end::Container-->
+        </nav>
+        <!--end::Header-->
+        
         <!--begin::Sidebar-->
         <aside class="app-sidebar bg-body-secondary shadow" data-bs-theme="dark">
             <!--begin::Sidebar Brand-->
             <div class="sidebar-brand">
-                <a href="#" class="brand-link">
-                    <i class="bi bi-diagram-3 brand-image"></i>
+                <a href="index.html" class="brand-link">
+                    <i class="bi bi-diagram-3 brand-image opacity-75 shadow"></i>
                     <span class="brand-text fw-light">Mapping Tool</span>
                 </a>
             </div>
@@ -383,17 +523,18 @@
             <!--begin::Sidebar Wrapper-->
             <div class="sidebar-wrapper">
                 <nav class="mt-2">
-                    <ul class="nav sidebar-menu flex-column" role="menu">
+                    <!--begin::Sidebar Menu-->
+                    <ul class="nav sidebar-menu flex-column" data-lte-toggle="treeview" role="menu" data-accordion="false">
                         <li class="nav-header">CONFIGURATION</li>
-                        <li class="nav-item">
-                            <a href="#schemaConfig" class="nav-link active" data-bs-toggle="collapse">
+                        <li class="nav-item menu-open">
+                            <a href="#" class="nav-link active">
                                 <i class="nav-icon bi bi-gear"></i>
                                 <p>
                                     Schema Setup
                                     <i class="nav-arrow bi bi-chevron-right"></i>
                                 </p>
                             </a>
-                            <ul class="nav nav-treeview collapse show" id="schemaConfig">
+                            <ul class="nav nav-treeview">
                                 <li class="nav-item">
                                     <a href="#" class="nav-link" id="navLoadSchemas">
                                         <i class="nav-icon bi bi-upload"></i>
@@ -410,15 +551,15 @@
                         </li>
                         
                         <li class="nav-header">MAPPING</li>
-                        <li class="nav-item">
-                            <a href="#functoids" class="nav-link" data-bs-toggle="collapse">
+                        <li class="nav-item menu-open">
+                            <a href="#" class="nav-link">
                                 <i class="nav-icon bi bi-box"></i>
                                 <p>
                                     Functoids
                                     <i class="nav-arrow bi bi-chevron-right"></i>
                                 </p>
                             </a>
-                            <ul class="nav nav-treeview collapse show" id="functoids">
+                            <ul class="nav nav-treeview">
                                 <li class="nav-item">
                                     <a href="#" class="nav-link functoid-btn" data-type="string" draggable="true">
                                         <i class="nav-icon bi bi-fonts"></i>
@@ -466,6 +607,7 @@
                             </a>
                         </li>
                     </ul>
+                    <!--end::Sidebar Menu-->
                 </nav>
             </div>
             <!--end::Sidebar Wrapper-->
@@ -474,18 +616,13 @@
         
         <!--begin::App Main-->
         <main class="app-main" style="padding: 0;">
-            <!-- Sidebar Toggle Button (AdminLTE style) -->
-            <button class="btn btn-link position-fixed" data-lte-toggle="sidebar" 
-                    style="top: 10px; left: 10px; z-index: 1000; color: #6c757d; font-size: 1.5rem; padding: 0.25rem 0.5rem;">
-                <i class="bi bi-list"></i>
-            </button>
             
             <div class="split" id="splitContainer">
             
                 <!-- Top Panel: Mapping Canvas (75%) -->
                 <div class="split-panel" id="mappingPanel">
-                    <div class="card mb-0" style="height: 100%; border: none; display: flex; flex-direction: column;">
-                        <div class="card-body p-0" style="flex: 1; overflow: hidden;">
+                    <div class="card mb-0">
+                        <div class="card-body p-0">
                             <div class="mapping-tool">
                                 <!-- Source Schema Panel -->
                                 <div class="schema-panel source-panel">
@@ -525,8 +662,8 @@
                 
                 <!-- Bottom Panel: Configuration & Output (25%) -->
                 <div class="split-panel" id="configPanel">
-                    <div class="card mb-0 terminal-panel" style="height: 100%; border: none; display: flex; flex-direction: column;">
-                        <div class="card-header terminal-header p-0" style="flex-shrink: 0;">
+                    <div class="card mb-0 terminal-panel">
+                        <div class="card-header terminal-header p-0">
                             <ul class="nav nav-tabs" role="tablist" style="margin: 0; border: none; background: transparent;">
                                 <li class="nav-item">
                                     <button class="nav-link terminal-tab active" id="config-tab" data-bs-toggle="tab" data-bs-target="#config-content" type="button" role="tab">
@@ -561,8 +698,8 @@
                                 </li>
                             </ul>
                         </div>
-                        <div class="card-body terminal-body p-0" style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">
-                            <div class="tab-content" style="flex: 1; overflow: hidden; padding: 0; margin: 0;">
+                        <div class="card-body terminal-body p-0">
+                            <div class="tab-content">
                                 <!-- schemas.json Tab -->
                                 <div class="tab-pane fade show active" id="config-content" role="tabpanel" style="padding: 0; margin: 0;">
                                     <div class="terminal-toolbar" style="flex-shrink: 0;">
@@ -763,6 +900,37 @@
     </script>
     <!--end::OverlayScrollbars Configure-->
     
+    <!--begin::AdminLTE App and Components-->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Initialize AdminLTE Treeview
+            const treeviewEl = document.querySelector('[data-lte-toggle="treeview"]');
+            if (treeviewEl && typeof lte !== 'undefined' && lte.Treeview) {
+                new lte.Treeview(treeviewEl);
+            }
+            
+            // Listen to AdminLTE's built-in sidebar toggle event
+            document.addEventListener('lte.pushmenu.collapsed', () => {
+                // Redraw mapping lines after sidebar animation
+                setTimeout(() => {
+                    if (window.mappingToolInstance && window.mappingToolInstance.updateAllMappingLines) {
+                        window.mappingToolInstance.updateAllMappingLines();
+                    }
+                }, 300);
+            });
+            
+            document.addEventListener('lte.pushmenu.expanded', () => {
+                // Redraw mapping lines after sidebar animation
+                setTimeout(() => {
+                    if (window.mappingToolInstance && window.mappingToolInstance.updateAllMappingLines) {
+                        window.mappingToolInstance.updateAllMappingLines();
+                    }
+                }, 300);
+            });
+        });
+    </script>
+    <!--end::AdminLTE App and Components-->
+    
     <!-- JSON Viewer Web Component -->
     <script src="components/json-viewer.js"></script>
     
@@ -824,17 +992,6 @@
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             // Watch for AdminLTE sidebar toggle events
-            document.addEventListener('click', function(e) {
-                const toggleBtn = e.target.closest('[data-lte-toggle="sidebar"]');
-                if (toggleBtn) {
-                    // Redraw mapping lines after sidebar animation completes
-                    setTimeout(() => {
-                        if (window.mappingToolInstance && window.mappingToolInstance.updateAllMappingLines) {
-                            window.mappingToolInstance.updateAllMappingLines();
-                        }
-                    }, 300);
-                }
-            });
             
             // Link sidebar actions to main buttons
             document.getElementById('navLoadSchemas')?.addEventListener('click', (e) => {
