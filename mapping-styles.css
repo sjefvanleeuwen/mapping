@@ -189,26 +189,31 @@
 
 .functoid {
     position: absolute;
-    width: 64px;
-    height: 64px;
+    width: 36px;
+    height: 36px;
     border-radius: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 600;
-    font-size: 1.25rem;
+    font-weight: 500;
+    font-size: 1rem;
     color: white;
     cursor: move;
-    box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.15);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     user-select: none;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    transition: transform 0.15s ease-in-out;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    transition: transform 0.1s ease-in-out;
     pointer-events: all;
+}
+
+.functoid i {
+    font-size: 1rem;
+    line-height: 1;
 }
 
 .functoid:hover {
     transform: translate(-50%, -50%) scale(1.05);
-    box-shadow: 0 0.375rem 0.75rem rgba(0, 0, 0, 0.25);
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.4);
 }
 
 .functoid.dragging {
@@ -216,37 +221,38 @@
 }
 
 .functoid.string {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #6366f1;
 }
 
 .functoid.math {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    background: #ec4899;
 }
 
 .functoid.logical {
-    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    background: #06b6d4;
 }
 
 .functoid.conversion {
-    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    background: #10b981;
 }
 
 .functoid .delete-btn {
     position: absolute;
-    top: -8px;
-    right: -8px;
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    background: var(--bs-danger);
+    top: -5px;
+    right: -5px;
+    width: 14px;
+    height: 14px;
+    border-radius: 0;
+    background: #ef4444;
     color: white;
-    border: 2px solid white;
-    font-size: 0.75rem;
+    border: 1px solid #1e1e1e;
+    font-size: 0.6rem;
     cursor: pointer;
     display: none;
     align-items: center;
     justify-content: center;
     font-weight: 600;
+    line-height: 1;
 }
 
 .functoid:hover .delete-btn {
@@ -255,31 +261,31 @@
 
 .functoid-connector {
     position: absolute;
-    width: 14px;
-    height: 14px;
-    background: #ffd700;
-    border: 2px solid white;
+    width: 8px;
+    height: 8px;
+    background: #fbbf24;
+    border: 1px solid #1e1e1e;
     border-radius: 50%;
     cursor: crosshair;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    transition: all 0.15s ease-in-out;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    transition: all 0.1s ease-in-out;
 }
 
 .functoid-connector.left {
-    left: -7px;
+    left: -5px;
     top: 50%;
     transform: translateY(-50%);
 }
 
 .functoid-connector.right {
-    right: -7px;
+    right: -5px;
     top: 50%;
     transform: translateY(-50%);
 }
 
 .functoid-connector:hover {
-    background: var(--bs-danger);
-    transform: translateY(-50%) scale(1.3);
+    background: #ef4444;
+    transform: translateY(-50%) scale(1.2);
 }
 
 /* Output Textareas */

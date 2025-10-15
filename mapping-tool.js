@@ -439,9 +439,6 @@ class MappingTool {
             // Load sample mapping after schemas are rendered
             setTimeout(() => {
                 this.loadSampleMapping();
-                
-                // Test syntax highlighting on load
-                this.testSyntaxHighlighting();
             }, 300);
         } catch (error) {
             console.error('Error loading sample schemas:', error);
@@ -1003,14 +1000,14 @@ class MappingTool {
         functoid.style.transform = 'translate(-50%, -50%)';
         
         const icons = {
-            string: 'ABC',
-            math: '+',
-            logical: 'IF',
-            conversion: '⇄'
+            string: 'bi-fonts',
+            math: 'bi-calculator',
+            logical: 'bi-check-square',
+            conversion: 'bi-arrow-left-right'
         };
         
         functoid.innerHTML = `
-            <span class="functoid-icon">${icons[type]}</span>
+            <i class="bi ${icons[type]}"></i>
             <div class="functoid-connector left"></div>
             <div class="functoid-connector right"></div>
             <div class="delete-btn">×</div>

@@ -553,9 +553,9 @@
                             </ul>
                         </div>
                         <div class="card-body terminal-body p-0" style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">
-                            <div class="tab-content" style="flex: 1; overflow: hidden;">
+                            <div class="tab-content" style="flex: 1; overflow: hidden; padding: 0; margin: 0;">
                                 <!-- schemas.json Tab -->
-                                <div class="tab-pane fade show active" id="config-content" role="tabpanel">
+                                <div class="tab-pane fade show active" id="config-content" role="tabpanel" style="padding: 0; margin: 0;">
                                     <div class="terminal-toolbar" style="flex-shrink: 0;">
                                         <button class="btn btn-sm btn-secondary me-1" id="loadSchemas" title="Load Schemas">
                                             <i class="bi bi-upload me-1"></i>Load
@@ -564,16 +564,16 @@
                                             <i class="bi bi-code-square me-1"></i>Format
                                         </button>
                                     </div>
-                                    <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden;">
-                                        <label class="terminal-label">Source Schema:</label>
+                                    <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden; padding: 0; margin: 0;">
+                                        <label class="terminal-label" style="margin: 0;">Source Schema:</label>
                                         <json-editor id="sourceSchemaInput" rows="4" style="flex: 1; min-height: 60px;"></json-editor>
-                                        <label class="terminal-label">Destination Schema:</label>
+                                        <label class="terminal-label" style="margin: 0;">Destination Schema:</label>
                                         <json-editor id="destSchemaInput" rows="4" style="flex: 1; min-height: 60px;"></json-editor>
                                     </div>
                                 </div>
 
                                 <!-- sample.json Tab -->
-                                <div class="tab-pane fade" id="sample-content" role="tabpanel">
+                                <div class="tab-pane fade" id="sample-content" role="tabpanel" style="padding: 0; margin: 0;">
                                     <div class="terminal-toolbar" style="flex-shrink: 0;">
                                         <button class="btn btn-sm btn-secondary me-1" id="loadSampleData" title="Load Sample">
                                             <i class="bi bi-file-earmark-code me-1"></i>Load
@@ -582,14 +582,14 @@
                                             <i class="bi bi-code-square me-1"></i>Format
                                         </button>
                                     </div>
-                                    <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden;">
-                                        <label class="terminal-label">Sample Input Data:</label>
+                                    <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden; padding: 0; margin: 0;">
+                                        <label class="terminal-label" style="margin: 0;">Sample Input Data:</label>
                                         <json-editor id="sourceDataInput" rows="10" style="flex: 1; min-height: 100px;"></json-editor>
                                     </div>
                                 </div>
 
                                 <!-- mapping.json Tab -->
-                                <div class="tab-pane fade" id="mapping-content" role="tabpanel">
+                                <div class="tab-pane fade" id="mapping-content" role="tabpanel" style="padding: 0; margin: 0;">
                                     <div class="terminal-toolbar" style="flex-shrink: 0;">
                                         <button class="btn btn-sm btn-primary me-1" id="generateOutput" title="Generate Mapping">
                                             <i class="bi bi-download me-1"></i>Generate
@@ -604,14 +604,14 @@
                                             <i class="bi bi-clipboard me-1"></i>Copy
                                         </button>
                                     </div>
-                                    <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden;">
-                                        <label class="terminal-label">Generated Mapping JSON:</label>
+                                    <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden; padding: 0; margin: 0;">
+                                        <label class="terminal-label" style="margin: 0;">Generated Mapping JSON:</label>
                                         <json-viewer id="mappingOutput" style="flex: 1; min-height: 100px;"></json-viewer>
                                     </div>
                                 </div>
 
                                 <!-- output.json Tab -->
-                                <div class="tab-pane fade" id="output-content" role="tabpanel">
+                                <div class="tab-pane fade" id="output-content" role="tabpanel" style="padding: 0; margin: 0;">
                                     <div class="terminal-toolbar" style="flex-shrink: 0;">
                                         <button class="btn btn-sm btn-success me-1" id="executeMapping" title="Execute Mapping">
                                             <i class="bi bi-play-fill me-1"></i>Execute
@@ -620,8 +620,8 @@
                                             <i class="bi bi-clipboard me-1"></i>Copy
                                         </button>
                                     </div>
-                                    <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden;">
-                                        <label class="terminal-label">Execution Result:</label>
+                                    <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden; padding: 0; margin: 0;">
+                                        <label class="terminal-label" style="margin: 0;">Execution Result:</label>
                                         <json-viewer id="executionResult" style="flex: 1; min-height: 100px;"></json-viewer>
                                     </div>
                                 </div>
