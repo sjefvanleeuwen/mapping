@@ -1,0 +1,180 @@
+{
+  "version": "1.0",
+  "timestamp": "2025-10-15T16:15:54.948Z",
+  "mappings": [
+    {
+      "source": {
+        "type": "field",
+        "path": "Schema.Customer.PersonalInfo.FirstName",
+        "schema": "source"
+      },
+      "target": {
+        "type": "functoid",
+        "functoidId": 1,
+        "connectorSide": "left"
+      }
+    },
+    {
+      "source": {
+        "type": "field",
+        "path": "Schema.Customer.PersonalInfo.LastName",
+        "schema": "source"
+      },
+      "target": {
+        "type": "functoid",
+        "functoidId": 1,
+        "connectorSide": "left"
+      }
+    },
+    {
+      "source": {
+        "type": "functoid",
+        "functoidId": 1,
+        "connectorSide": "right"
+      },
+      "target": {
+        "type": "field",
+        "path": "Schema.ContactRecord.FullName",
+        "schema": "dest"
+      }
+    },
+    {
+      "source": {
+        "type": "field",
+        "path": "Schema.Customer.ContactInfo.Email",
+        "schema": "source"
+      },
+      "target": {
+        "type": "field",
+        "path": "Schema.ContactRecord.EmailAddress",
+        "schema": "dest"
+      }
+    },
+    {
+      "source": {
+        "type": "field",
+        "path": "Schema.Customer.ContactInfo.Phone",
+        "schema": "source"
+      },
+      "target": {
+        "type": "field",
+        "path": "Schema.ContactRecord.PhoneNumber",
+        "schema": "dest"
+      }
+    },
+    {
+      "source": {
+        "type": "field",
+        "path": "Schema.Customer.ContactInfo.Address",
+        "schema": "source"
+      },
+      "target": {
+        "type": "field",
+        "path": "Schema.ContactRecord.MailingAddress.Street",
+        "schema": "dest"
+      }
+    },
+    {
+      "source": {
+        "type": "field",
+        "path": "Schema.Customer.ContactInfo.City",
+        "schema": "source"
+      },
+      "target": {
+        "type": "functoid",
+        "functoidId": 3,
+        "connectorSide": "left"
+      }
+    },
+    {
+      "source": {
+        "type": "functoid",
+        "functoidId": 3,
+        "connectorSide": "right"
+      },
+      "target": {
+        "type": "field",
+        "path": "Schema.ContactRecord.MailingAddress.CityState",
+        "schema": "dest"
+      }
+    },
+    {
+      "source": {
+        "type": "field",
+        "path": "Schema.Customer.ContactInfo.State",
+        "schema": "source"
+      },
+      "target": {
+        "type": "functoid",
+        "functoidId": 3,
+        "connectorSide": "left"
+      }
+    },
+    {
+      "source": {
+        "type": "field",
+        "path": "Schema.Customer.ContactInfo.ZipCode",
+        "schema": "source"
+      },
+      "target": {
+        "type": "field",
+        "path": "Schema.ContactRecord.MailingAddress.PostalCode",
+        "schema": "dest"
+      }
+    },
+    {
+      "source": {
+        "type": "field",
+        "path": "Schema.Customer.AccountInfo.AccountNumber",
+        "schema": "source"
+      },
+      "target": {
+        "type": "field",
+        "path": "Schema.ContactRecord.Account.ID",
+        "schema": "dest"
+      }
+    },
+    {
+      "source": {
+        "type": "field",
+        "path": "Schema.Customer.AccountInfo.AccountType",
+        "schema": "source"
+      },
+      "target": {
+        "type": "field",
+        "path": "Schema.ContactRecord.Account.Type",
+        "schema": "dest"
+      }
+    },
+    {
+      "source": {
+        "type": "field",
+        "path": "Schema.Customer.AccountInfo.Balance",
+        "schema": "source"
+      },
+      "target": {
+        "type": "field",
+        "path": "Schema.ContactRecord.Account.CurrentBalance",
+        "schema": "dest"
+      }
+    }
+  ],
+  "functoids": [
+    {
+      "id": 1,
+      "type": "string",
+      "position": {
+        "x": 198,
+        "y": 36.5
+      }
+    },
+    {
+      "id": 3,
+      "type": "string",
+      "position": {
+        "x": 220,
+        "y": 285
+      }
+    }
+  ]
+}

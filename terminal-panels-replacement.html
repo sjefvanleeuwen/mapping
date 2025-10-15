@@ -1,0 +1,223 @@
+<!-- Complete replacement for split container section -->
+<!-- This goes from line ~341 to ~410 in index.html -->
+
+            <div class="split" id="splitContainer">
+            
+                <!-- Top Panel: Mapping Canvas (75%) -->
+                <div class="split-panel" id="mappingPanel">
+                    <div class="card mb-0" style="height: 100%; border: none; display: flex; flex-direction: column; background: #1e1e1e;">
+                        <div class="card-header p-0" style="flex-shrink: 0; background: #252526; border-bottom: 1px solid #3c3c3c;">
+                            <div class="d-flex align-items-center justify-content-between px-2" style="height: 35px;">
+                                <span style="color: #cccccc; font-size: 0.85rem; font-family: 'Consolas', monospace;">
+                                    <i class="bi bi-diagram-3 me-1"></i>Mapping Canvas
+                                </span>
+                                <div>
+                                    <span class="badge bg-info me-2" id="mappingCount" style="font-size: 0.7rem; font-family: 'Consolas', monospace;">0 mappings</span>
+                                    <button class="btn btn-sm btn-link text-white p-0" id="toggleFullscreen" title="Toggle Fullscreen" style="font-size: 1rem;">
+                                        <i class="bi bi-arrows-fullscreen"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body p-0" style="flex: 1; overflow: hidden;">
+                            <div class="mapping-tool">
+                                <!-- Source Schema Panel -->
+                                <div class="schema-panel source-panel">
+                                    <div class="panel-header bg-primary text-white" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">
+                                        <i class="bi bi-box-arrow-right me-1"></i>Source
+                                    </div>
+                                    <div class="schema-tree" id="sourceSchema">
+                                        <div class="text-center text-muted p-2">
+                                            <i class="bi bi-inbox" style="font-size: 1.5rem;"></i>
+                                            <p class="mt-1 mb-0" style="font-size: 0.75rem;">Load schema</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Mapping Canvas -->
+                                <div class="mapping-canvas">
+                                    <svg id="mappingSvg" class="mapping-svg"></svg>
+                                    <div class="functoid-area" id="functoidArea"></div>
+                                </div>
+
+                                <!-- Destination Schema Panel -->
+                                <div class="schema-panel destination-panel">
+                                    <div class="panel-header bg-success text-white" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">
+                                        <i class="bi bi-box-arrow-in-left me-1"></i>Destination
+                                    </div>
+                                    <div class="schema-tree" id="destinationSchema">
+                                        <div class="text-center text-muted p-2">
+                                            <i class="bi bi-inbox" style="font-size: 1.5rem;"></i>
+                                            <p class="mt-1 mb-0" style="font-size: 0.75rem;">Load schema</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Bottom Panel: Terminal Tabs (25%) -->
+                <div class="split-panel" id="terminalPanel">
+                    <div class="card mb-0" style="height: 100%; border: none; display: flex; flex-direction: column; background: #1e1e1e;">
+                        <!-- Terminal Tab Headers -->
+                        <div class="card-header p-0" style="flex-shrink: 0; background: #252526; border-bottom: 1px solid #3c3c3c;">
+                            <ul class="nav nav-tabs" role="tablist" style="margin: 0; border: none; background: transparent;">
+                                <li class="nav-item">
+                                    <button class="nav-link active terminal-tab" id="schemas-tab" data-bs-toggle="tab" data-bs-target="#schemas-terminal" type="button" role="tab">
+                                        <i class="bi bi-file-earmark-code me-1"></i>schemas.json
+                                    </button>
+                                </li>
+                                <li class="nav-item">
+                                    <button class="nav-link terminal-tab" id="sample-tab" data-bs-toggle="tab" data-bs-target="#sample-terminal" type="button" role="tab">
+                                        <i class="bi bi-database me-1"></i>sample.json
+                                    </button>
+                                </li>
+                                <li class="nav-item">
+                                    <button class="nav-link terminal-tab" id="mapping-tab" data-bs-toggle="tab" data-bs-target="#mapping-terminal" type="button" role="tab">
+                                        <i class="bi bi-diagram-2 me-1"></i>mapping.json
+                                    </button>
+                                </li>
+                                <li class="nav-item">
+                                    <button class="nav-link terminal-tab" id="output-tab" data-bs-toggle="tab" data-bs-target="#output-terminal" type="button" role="tab">
+                                        <i class="bi bi-play-circle me-1"></i>output.json
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <!-- Terminal Tab Content -->
+                        <div class="card-body p-0" style="flex: 1; overflow: hidden;">
+                            <div class="tab-content terminal-content" style="height: 100%;">
+                                <!-- Schemas Terminal -->
+                                <div class="tab-pane fade show active" id="schemas-terminal" role="tabpanel" style="height: 100%; display: flex; flex-direction: column; background: #1e1e1e;">
+                                    <div class="terminal-toolbar" style="background: #2d2d30; padding: 0.25rem 0.5rem; border-bottom: 1px solid #3c3c3c;">
+                                        <button id="loadSchemas" class="btn btn-sm btn-outline-light me-1" style="font-size: 0.7rem; font-family: 'Consolas', monospace;">
+                                            <i class="bi bi-upload me-1"></i>Load
+                                        </button>
+                                        <button id="loadSampleData" class="btn btn-sm btn-outline-light" style="font-size: 0.7rem; font-family: 'Consolas', monospace;">
+                                            <i class="bi bi-file-earmark-code me-1"></i>Load Sample
+                                        </button>
+                                    </div>
+                                    <div class="terminal-body" style="flex: 1; overflow: auto; padding: 0.5rem; font-family: 'Consolas', monospace; font-size: 0.75rem;">
+                                        <div class="mb-2">
+                                            <div style="color: #608b4e;">// Source Schema</div>
+                                            <textarea id="sourceSchemaInput" class="terminal-input" rows="6" placeholder='{"name": "Schema", ...}'></textarea>
+                                        </div>
+                                        <div class="mb-2">
+                                            <div style="color: #608b4e;">// Destination Schema</div>
+                                            <textarea id="destSchemaInput" class="terminal-input" rows="6" placeholder='{"name": "Schema", ...}'></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Sample Data Terminal -->
+                                <div class="tab-pane fade" id="sample-terminal" role="tabpanel" style="height: 100%; display: flex; flex-direction: column; background: #1e1e1e;">
+                                    <div class="terminal-body" style="flex: 1; overflow: auto; padding: 0.5rem; font-family: 'Consolas', monospace; font-size: 0.75rem;">
+                                        <div style="color: #608b4e;">// Sample Source Data</div>
+                                        <textarea id="sourceDataInput" class="terminal-input" rows="15" placeholder='{"Customer": {...}}'></textarea>
+                                    </div>
+                                </div>
+                                
+                                <!-- Mapping Output Terminal -->
+                                <div class="tab-pane fade" id="mapping-terminal" role="tabpanel" style="height: 100%; display: flex; flex-direction: column; background: #1e1e1e;">
+                                    <div class="terminal-toolbar" style="background: #2d2d30; padding: 0.25rem 0.5rem; border-bottom: 1px solid #3c3c3c;">
+                                        <button id="generateOutput" class="btn btn-sm btn-outline-light me-1" style="font-size: 0.7rem; font-family: 'Consolas', monospace;">
+                                            <i class="bi bi-gear me-1"></i>Generate
+                                        </button>
+                                        <button id="copyOutput" class="btn btn-sm btn-outline-light me-1" style="font-size: 0.7rem; font-family: 'Consolas', monospace;">
+                                            <i class="bi bi-clipboard"></i>
+                                        </button>
+                                        <button id="loadMapping" class="btn btn-sm btn-outline-light" style="font-size: 0.7rem; font-family: 'Consolas', monospace;">
+                                            <i class="bi bi-download"></i>
+                                        </button>
+                                    </div>
+                                    <div class="terminal-body" style="flex: 1; overflow: auto; padding: 0.5rem; font-family: 'Consolas', monospace; font-size: 0.75rem;">
+                                        <pre id="mappingOutput" class="json-output" style="margin: 0; color: #d4d4d4;"></pre>
+                                    </div>
+                                </div>
+                                
+                                <!-- Execution Output Terminal -->
+                                <div class="tab-pane fade" id="output-terminal" role="tabpanel" style="height: 100%; display: flex; flex-direction: column; background: #1e1e1e;">
+                                    <div class="terminal-toolbar" style="background: #2d2d30; padding: 0.25rem 0.5rem; border-bottom: 1px solid #3c3c3c;">
+                                        <button id="executeMapping" class="btn btn-sm btn-success me-1" style="font-size: 0.7rem; font-family: 'Consolas', monospace;">
+                                            <i class="bi bi-play-fill me-1"></i>Execute
+                                        </button>
+                                        <button id="copyResult" class="btn btn-sm btn-outline-light" style="font-size: 0.7rem; font-family: 'Consolas', monospace;">
+                                            <i class="bi bi-clipboard-check"></i>
+                                        </button>
+                                    </div>
+                                    <div class="terminal-body" style="flex: 1; overflow: auto; padding: 0.5rem; font-family: 'Consolas', monospace; font-size: 0.75rem;">
+                                        <pre id="executionResult" class="json-output" style="margin: 0; color: #d4d4d4;"></pre>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+            <!-- End Split Container -->
+
+<!-- ADDITIONAL CSS TO ADD IN <style> section -->
+<style>
+.terminal-tab {
+    font-family: 'Consolas', monospace !important;
+    font-size: 0.75rem !important;
+    padding: 0.4rem 0.8rem !important;
+    border: none !important;
+    background: transparent !important;
+    color: #969696 !important;
+    border-radius: 0 !important;
+}
+
+.terminal-tab.active {
+    background: #1e1e1e !important;
+    color: #ffffff !important;
+    border-bottom: 2px solid #007acc !important;
+}
+
+.terminal-tab:hover {
+    color: #ffffff !important;
+    background: #2a2d2e !important;
+}
+
+.terminal-input {
+    width: 100%;
+    background: #1e1e1e !important;
+    border: 1px solid #3c3c3c !important;
+    color: #d4d4d4 !important;
+    font-family: 'Consolas', monospace !important;
+    font-size: 0.75rem !important;
+    padding: 0.5rem !important;
+    resize: vertical;
+}
+
+.terminal-input:focus {
+    outline: none !important;
+    border-color: #007acc !important;
+    box-shadow: none !important;
+}
+
+.json-output {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-family: 'Consolas', monospace;
+    font-size: 0.75rem;
+}
+
+/* JSON Syntax Highlighting Colors (VS Code Dark+ theme) */
+.json-key { color: #9cdcfe; }
+.json-string { color: #ce9178; }
+.json-number { color: #b5cea8; }
+.json-boolean { color: #569cd6; }
+.json-null { color: #569cd6; }
+</style>
+
+<!-- Note: You'll also need to update Split.js initialization to swap panel order:
+   Split(['#mappingPanel', '#terminalPanel'], {
+       direction: 'vertical',
+       sizes: [75, 25],
+       minSize: [400, 150]
+   });
+-->

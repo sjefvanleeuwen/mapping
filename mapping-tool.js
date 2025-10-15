@@ -20,13 +20,71 @@ class MappingTool {
         this.init();
     }
     
+    // JSON Syntax Highlighting Helper
+    formatJSONWithSyntaxHighlight(json) {
+        if (typeof json !== 'string') {
+            json = JSON.stringify(json, null, 2);
+        }
+        
+        json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        
+        return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+            let cls = 'json-number';
+            if (/^"/.test(match)) {
+                if (/:$/.test(match)) {
+                    cls = 'json-key';
+                } else {
+                    cls = 'json-string';
+                }
+            } else if (/true|false/.test(match)) {
+                cls = 'json-boolean';
+            } else if (/null/.test(match)) {
+                cls = 'json-null';
+            }
+            return '<span class="' + cls + '">' + match + '</span>';
+        });
+    }
+    
+    // Helper methods for component compatibility (textarea vs json-editor vs json-viewer)
+    getElementValue(element) {
+        if (!element) return '';
+        
+        if (element.tagName === 'JSON-EDITOR') {
+            return element.getValue();
+        } else if (element.tagName === 'TEXTAREA') {
+            return element.value;
+        } else if (element.value !== undefined) {
+            return element.value;
+        }
+        return '';
+    }
+    
+    setElementValue(element, value) {
+        if (!element) return;
+        
+        if (element.tagName === 'JSON-EDITOR') {
+            element.setValue(value);
+        } else if (element.tagName === 'TEXTAREA') {
+            element.value = value;
+        } else if (element.value !== undefined) {
+            element.value = value;
+        }
+    }
+    
     init() {
         this.attachEventListeners();
         this.setupFunctoidToolbar();
         this.setupClearButton();
         this.setupConfigPanel();
         this.setupOutputPanel();
-        this.loadSampleSchemas(); // Load sample data by default
+        this.setupScrollHandlers();
+        this.setupAdditionalButtons();
+        
+        // Load sample schemas from file on startup
+        this.loadSchemasFromFile();
+        
+        // Store instance globally for sidebar access
+        window.mappingToolInstance = this;
     }
     
     attachEventListeners() {
@@ -66,18 +124,59 @@ class MappingTool {
     }
     
     setupFunctoidToolbar() {
+        // Setup draggable functoid buttons
         document.querySelectorAll('.functoid-btn').forEach(btn => {
+            // Drag start - create a functoid on the canvas
+            btn.addEventListener('dragstart', (e) => {
+                const type = btn.getAttribute('data-type');
+                e.dataTransfer.setData('functoid-type', type);
+                e.dataTransfer.effectAllowed = 'copy';
+            });
+            
+            // Click to add functoid at center
             btn.addEventListener('click', (e) => {
+                e.preventDefault();
                 const type = btn.getAttribute('data-type');
                 this.addFunctoid(type);
             });
         });
+        
+        // Setup canvas drop zone
+        if (this.functoidArea) {
+            this.functoidArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'copy';
+            });
+            
+            this.functoidArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                const type = e.dataTransfer.getData('functoid-type');
+                if (type) {
+                    // Get drop position relative to functoid area
+                    const rect = this.functoidArea.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    this.addFunctoid(type, { x, y });
+                }
+            });
+        }
+        
+        // Add Execute button handler
+        const executeBtn = document.getElementById('executeMapping');
+        if (executeBtn) {
+            executeBtn.addEventListener('click', () => {
+                this.executeMapping();
+            });
+        }
     }
     
     setupClearButton() {
-        document.getElementById('clearMappings').addEventListener('click', () => {
-            this.clearAllMappings();
-        });
+        const clearBtn = document.getElementById('clearMappings');
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => {
+                this.clearAllMappings();
+            });
+        }
     }
     
     setupConfigPanel() {
@@ -91,25 +190,86 @@ class MappingTool {
     }
     
     setupOutputPanel() {
-        document.getElementById('generateOutput').addEventListener('click', () => {
-            this.generateMappingOutput();
+        const generateBtn = document.getElementById('generateOutput');
+        if (generateBtn) {
+            generateBtn.addEventListener('click', () => {
+                this.generateMappingOutput();
+            });
+        }
+        
+        const copyOutputBtn = document.getElementById('copyOutput');
+        if (copyOutputBtn) {
+            copyOutputBtn.addEventListener('click', () => {
+                this.copyOutputToClipboard();
+            });
+        }
+    }
+    
+    setupScrollHandlers() {
+        // Add scroll event listeners to schema tree containers to update mapping lines
+        const sourceTree = document.getElementById('sourceSchema');
+        const destTree = document.getElementById('destinationSchema');
+        
+        if (sourceTree) {
+            sourceTree.addEventListener('scroll', () => {
+                this.updateAllMappingLines();
+            });
+        }
+        
+        if (destTree) {
+            destTree.addEventListener('scroll', () => {
+                this.updateAllMappingLines();
+            });
+        }
+        
+        // Also add to the parent panels in case scrolling happens there
+        const sourcePanels = document.querySelectorAll('.source-panel');
+        const destPanels = document.querySelectorAll('.destination-panel');
+        
+        sourcePanels.forEach(panel => {
+            panel.addEventListener('scroll', () => {
+                this.updateAllMappingLines();
+            });
         });
         
-        document.getElementById('copyOutput').addEventListener('click', () => {
-            this.copyOutputToClipboard();
+        destPanels.forEach(panel => {
+            panel.addEventListener('scroll', () => {
+                this.updateAllMappingLines();
+            });
         });
+    }
+    
+    updateAllMappingLines() {
+        // Redraw all mapping lines to match new scroll positions
+        this.mappings.forEach(mapping => {
+            const pos1 = this.getConnectorPosition(mapping.connector1);
+            const pos2 = this.getConnectorPosition(mapping.connector2);
+            const path = this.createCurvePath(pos1.x, pos1.y, pos2.x, pos2.y);
+            mapping.line.setAttribute('d', path);
+        });
+    }
+    
+    setupAdditionalButtons() {
+        const loadBtn = document.getElementById('loadMapping');
+        if (loadBtn) {
+            loadBtn.addEventListener('click', () => {
+                this.loadMappingFromJSON();
+            });
+        }
         
-        document.getElementById('loadMapping').addEventListener('click', () => {
-            this.loadMappingFromJSON();
-        });
+        const executeBtn = document.getElementById('executeMapping');
+        if (executeBtn) {
+            executeBtn.addEventListener('click', () => {
+                this.executeMapping();
+            });
+        }
         
-        document.getElementById('executeMapping').addEventListener('click', () => {
-            this.executeMapping();
-        });
-        
-        document.getElementById('copyResult').addEventListener('click', () => {
-            this.copyResultToClipboard();
-        });
+        const copyResultBtn = document.getElementById('copyResult');
+        if (copyResultBtn) {
+            copyResultBtn.addEventListener('click', () => {
+                this.copyResultToClipboard();
+            });
+        }
     }
     
     loadSampleSchemas() {
@@ -187,8 +347,8 @@ class MappingTool {
             ]
         };
         
-        document.getElementById('sourceSchemaInput').value = JSON.stringify(sampleSource, null, 2);
-        document.getElementById('destSchemaInput').value = JSON.stringify(sampleDestination, null, 2);
+        this.setElementValue(document.getElementById('sourceSchemaInput'), JSON.stringify(sampleSource, null, 2));
+        this.setElementValue(document.getElementById('destSchemaInput'), JSON.stringify(sampleDestination, null, 2));
         
         // Sample source data for execution
         const sampleSourceData = {
@@ -213,15 +373,86 @@ class MappingTool {
             }
         };
         
-        document.getElementById('sourceDataInput').value = JSON.stringify(sampleSourceData, null, 2);
+        this.setElementValue(document.getElementById('sourceDataInput'), JSON.stringify(sampleSourceData, null, 2));
         
         this.loadSchemasFromInput();
     }
     
+    async loadSchemasFromFile() {
+        try {
+            const response = await fetch('sample-schemas.json');
+            if (!response.ok) {
+                console.warn('Could not load sample-schemas.json, using inline defaults');
+                this.loadSampleSchemas();
+                return;
+            }
+            
+            const data = await response.json();
+            
+            // Populate the input textareas
+            const sourceInput = document.getElementById('sourceSchemaInput');
+            const destInput = document.getElementById('destSchemaInput');
+            
+            if (!sourceInput || !destInput) {
+                console.warn('Schema input textareas not found, retrying...');
+                // Retry after a short delay
+                setTimeout(() => this.loadSchemasFromFile(), 100);
+                return;
+            }
+            
+            this.setElementValue(sourceInput, JSON.stringify(data.sourceSchema, null, 2));
+            this.setElementValue(destInput, JSON.stringify(data.destinationSchema, null, 2));
+            
+            // Sample source data for execution
+            const sampleSourceData = {
+                "Customer": {
+                    "PersonalInfo": {
+                        "FirstName": "John",
+                        "LastName": "Doe",
+                        "DateOfBirth": "1985-06-15",
+                        "SSN": "123-45-6789"
+                    },
+                    "ContactInfo": {
+                        "Email": "john.doe@example.com",
+                        "Phone": "+1-555-0100",
+                        "Address": "456 Oak Avenue",
+                        "City": "San Francisco",
+                        "State": "CA",
+                        "ZipCode": "94102"
+                    },
+                    "AccountInfo": {
+                        "AccountNumber": "ACC-987654",
+                        "AccountType": "Premium",
+                        "Balance": 5432.10,
+                        "Status": "Active"
+                    }
+                }
+            };
+            
+            const dataInput = document.getElementById('sourceDataInput');
+            if (dataInput) {
+                this.setElementValue(dataInput, JSON.stringify(sampleSourceData, null, 2));
+            }
+            
+            this.loadSchemasFromInput();
+            
+            // Load sample mapping after schemas are rendered
+            setTimeout(() => {
+                this.loadSampleMapping();
+                
+                // Test syntax highlighting on load
+                this.testSyntaxHighlighting();
+            }, 300);
+        } catch (error) {
+            console.error('Error loading sample schemas:', error);
+            this.loadSampleSchemas();
+        }
+    }
+    
     loadSchemasFromInput() {
         try {
-            const sourceJSON = document.getElementById('sourceSchemaInput').value;
-            const destJSON = document.getElementById('destSchemaInput').value;
+            const sourceJSON = this.getElementValue(document.getElementById('sourceSchemaInput'));
+            const destJSON = this.getElementValue(document.getElementById('destSchemaInput'));
             
             this.sourceSchema = JSON.parse(sourceJSON);
             this.destinationSchema = JSON.parse(destJSON);
@@ -331,7 +562,14 @@ class MappingTool {
         });
         
         const outputText = JSON.stringify(output, null, 2);
-        document.getElementById('mappingOutput').value = outputText;
+        const outputElement = document.getElementById('mappingOutput');
+        if (outputElement && outputElement.tagName === 'JSON-VIEWER') {
+            outputElement.setJSON(outputText);
+        } else if (outputElement && outputElement.tagName === 'PRE') {
+            outputElement.innerHTML = this.formatJSONWithSyntaxHighlight(outputText);
+        } else if (outputElement) {
+            outputElement.value = outputText;
+        }
     }
     
     getConnectorInfo(connector) {
@@ -357,7 +595,17 @@ class MappingTool {
     }
     
     copyOutputToClipboard() {
-        const output = document.getElementById('mappingOutput').value;
+        const outputElement = document.getElementById('mappingOutput');
+        let output = '';
+        
+        if (outputElement.tagName === 'JSON-VIEWER') {
+            output = outputElement.getText();
+        } else if (outputElement.tagName === 'PRE') {
+            output = outputElement.textContent;
+        } else {
+            output = outputElement.value;
+        }
+        
         if (!output) {
             alert('Please generate mapping output first!');
             return;
@@ -376,35 +624,56 @@ class MappingTool {
         
         try {
             const mappingData = JSON.parse(jsonInput);
-            
-            // Clear existing mappings
-            this.clearAllMappings();
-            
-            // Load functoids first
-            if (mappingData.functoids) {
-                mappingData.functoids.forEach(functoidData => {
-                    this.addFunctoid(functoidData.type, functoidData.position, functoidData.id);
-                });
-            }
-            
-            // Wait a bit for functoids to render, then create mappings
-            setTimeout(() => {
-                if (mappingData.mappings) {
-                    mappingData.mappings.forEach(mapping => {
-                        const sourceConnector = this.findConnector(mapping.source);
-                        const targetConnector = this.findConnector(mapping.target);
-                        
-                        if (sourceConnector && targetConnector) {
-                            this.createMapping(sourceConnector, targetConnector);
-                        }
-                    });
-                }
-                alert('Mapping loaded successfully!');
-            }, 100);
-            
+            this.applyMappingData(mappingData);
+            alert('Mapping loaded successfully!');
         } catch (error) {
             alert('Error loading mapping: ' + error.message);
         }
+    }
+    
+    async loadSampleMapping() {
+        try {
+            const response = await fetch('sample-mapping.json');
+            if (!response.ok) {
+                console.warn('Could not load sample-mapping.json');
+                return;
+            }
+            
+            const mappingData = await response.json();
+            console.log('Loading sample mapping:', mappingData);
+            this.applyMappingData(mappingData);
+        } catch (error) {
+            console.error('Error loading sample mapping:', error);
+        }
+    }
+    
+    applyMappingData(mappingData) {
+        // Clear existing mappings
+        this.clearAllMappings();
+        
+        // Load functoids first
+        if (mappingData.functoids) {
+            mappingData.functoids.forEach(functoidData => {
+                this.addFunctoid(functoidData.type, functoidData.position, functoidData.id);
+            });
+        }
+        
+        // Wait a bit for functoids to render, then create mappings
+        setTimeout(() => {
+            if (mappingData.mappings) {
+                mappingData.mappings.forEach(mapping => {
+                    const sourceConnector = this.findConnector(mapping.source);
+                    const targetConnector = this.findConnector(mapping.target);
+                    
+                    if (sourceConnector && targetConnector) {
+                        this.createMapping(sourceConnector, targetConnector);
+                    } else {
+                        console.warn('Could not find connectors for mapping:', mapping);
+                    }
+                });
+            }
+            console.log('Mapping applied successfully');
+        }, 200);
     }
     
     findConnector(connectorInfo) {
@@ -422,7 +691,7 @@ class MappingTool {
     
     executeMapping() {
         try {
-            const sourceDataText = document.getElementById('sourceDataInput').value;
+            const sourceDataText = this.getElementValue(document.getElementById('sourceDataInput'));
             if (!sourceDataText) {
                 alert('Please provide source data to execute the mapping!');
                 return;
@@ -452,10 +721,20 @@ class MappingTool {
             this.applyFunctoidTransformations(sourceData, result);
             
             const resultText = JSON.stringify(result, null, 2);
-            document.getElementById('executionResult').value = resultText;
+            const resultElement = document.getElementById('executionResult');
+            if (resultElement && resultElement.tagName === 'JSON-VIEWER') {
+                resultElement.setJSON(resultText);
+            } else if (resultElement && resultElement.tagName === 'PRE') {
+                resultElement.innerHTML = this.formatJSONWithSyntaxHighlight(resultText);
+            } else if (resultElement) {
+                resultElement.value = resultText;
+            }
             
-            // Show execution panel
-            document.querySelector('.execution-panel').style.display = 'block';
+            // Show execution panel (AdminLTE card)
+            const executionCard = document.getElementById('executionCard');
+            if (executionCard) {
+                executionCard.style.display = 'block';
+            }
             
         } catch (error) {
             alert('Error executing mapping: ' + error.message);
@@ -564,7 +843,17 @@ class MappingTool {
     }
     
     copyResultToClipboard() {
-        const result = document.getElementById('executionResult').value;
+        const resultElement = document.getElementById('executionResult');
+        let result = '';
+        
+        if (resultElement.tagName === 'JSON-VIEWER') {
+            result = resultElement.getText();
+        } else if (resultElement.tagName === 'PRE') {
+            result = resultElement.textContent;
+        } else {
+            result = resultElement.value;
+        }
+        
         if (!result) {
             alert('Please execute the mapping first!');
             return;
@@ -647,12 +936,32 @@ class MappingTool {
         this.mappings.push(mapping);
         this.svg.appendChild(line);
         
-        // Add click to delete
-        line.addEventListener('click', (e) => {
+        // Update mapping count
+        this.updateMappingCount();
+        
+        // Add double-click to delete (no confirmation needed)
+        line.addEventListener('dblclick', (e) => {
             e.stopPropagation();
-            if (confirm('Delete this mapping?')) {
-                this.deleteMapping(mapping);
-            }
+            e.preventDefault();
+            console.log('Double-click detected on mapping line');
+            this.deleteMapping(mapping);
+        });
+        
+        // Add single click for debugging
+        line.addEventListener('click', (e) => {
+            console.log('Single click on line detected');
+        });
+        
+        // Optional: Add visual feedback on hover
+        line.addEventListener('mouseenter', () => {
+            line.style.strokeWidth = '4';
+            line.style.cursor = 'pointer';
+            line.style.stroke = 'var(--bs-danger)';
+        });
+        
+        line.addEventListener('mouseleave', () => {
+            line.style.strokeWidth = '2';
+            line.style.stroke = '';
         });
     }
     
@@ -661,6 +970,7 @@ class MappingTool {
         if (index > -1) {
             this.mappings.splice(index, 1);
             mapping.line.remove();
+            this.updateMappingCount();
         }
     }
     
@@ -826,6 +1136,35 @@ class MappingTool {
             this.functoids = [];
             
             this.cancelConnection();
+            
+            // Update mapping count badge
+            this.updateMappingCount();
+        }
+    }
+    
+    updateMappingCount() {
+        const badge = document.getElementById('mappingCount');
+        if (badge) {
+            const count = this.mappings.length;
+            badge.textContent = `${count} mapping${count !== 1 ? 's' : ''}`;
+        }
+    }
+    
+    testSyntaxHighlighting() {
+        // Test the syntax highlighting with sample JSON
+        const testJSON = {
+            "message": "Syntax highlighting test",
+            "number": 42,
+            "boolean": true,
+            "null": null,
+            "array": [1, 2, 3]
+        };
+        
+        const resultElement = document.getElementById('executionResult');
+        if (resultElement && resultElement.tagName === 'JSON-VIEWER') {
+            resultElement.setJSON(testJSON);
+        } else if (resultElement && resultElement.tagName === 'PRE') {
+            resultElement.innerHTML = this.formatJSONWithSyntaxHighlight(testJSON);
         }
     }
 }
