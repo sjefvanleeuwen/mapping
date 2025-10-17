@@ -32,6 +32,12 @@
     <!-- Custom Styles for Mapping Tool -->
     <link rel="stylesheet" href="mapping-styles.css">
     
+    <!-- WebLLM Library for AI Assistant -->
+    <script type="module">
+        import * as webllm from "https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.47/lib/index.js";
+        window.webllm = webllm;
+    </script>
+    
     <style>
         /* CRITICAL: Make hamburger menu visible */
         .app-header .navbar-nav .nav-link {
@@ -181,6 +187,43 @@
             padding: 0 !important;
         }
         
+        /* Page Tab System */
+        .page-tab {
+            padding: 0.5rem 1rem !important;
+            border: none !important;
+            background: transparent !important;
+            color: #666 !important;
+            border-bottom: 3px solid transparent !important;
+            margin-bottom: -1px;
+            cursor: pointer;
+        }
+        
+        .page-tab:hover {
+            color: #333 !important;
+            background-color: #f8f9fa !important;
+        }
+        
+        .page-tab.active {
+            color: #0d6efd !important;
+            border-bottom-color: #0d6efd !important;
+            background-color: transparent !important;
+        }
+        
+        .page-content {
+            display: none;
+        }
+        
+        .page-content.active {
+            display: flex;
+            flex-direction: column;
+            height: 100% !important;
+            width: 100% !important;
+            overflow: hidden !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        
         /* Split.js Styling */
         .split {
             display: flex;
@@ -212,6 +255,22 @@
             flex: 1 1 auto !important;
             min-height: 0 !important;
             overflow: hidden !important;
+            border: none !important;
+            background: transparent !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            box-sizing: border-box !important;
+        }
+        
+        .tab-content {
+            flex: 1 1 auto !important;
+            min-height: 0 !important;
+            overflow: hidden !important;
+            background: transparent !important;
+            border: none !important;
+            position: relative !important;
+            width: 100% !important;
+            height: 100% !important;
         }
         
         #mappingPanel {
@@ -356,6 +415,7 @@
         }
         
         .terminal-panel .card-body {
+            padding: 0 !important; /* Remove padding */
             flex: 1 1 auto !important; /* Take remaining space */
             min-height: 0 !important; /* Allow shrinking */
             overflow: hidden !important;
@@ -366,6 +426,8 @@
             border-bottom: 1px solid #3c3c3c !important;
             color: #cccccc !important;
             font-family: 'Consolas', 'Courier New', monospace !important;
+            padding: 0 !important;
+            margin: 0 !important;
         }
         
         .terminal-tab {
@@ -412,7 +474,7 @@
             font-size: 0.75rem !important;
             margin: 0 !important;
             padding: 0.1rem 0.5rem !important; /* Reduced padding */
-            background: #252526 !important;
+            background: #1e1e1e !important;
             display: block;
             line-height: 1.2;
         }
@@ -433,6 +495,29 @@
             line-height: 1.2 !important;
         }
         
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Compress properties form for better fit */
+        #fieldPropertiesContainer .mb-3 {
+            margin-bottom: 0.5rem !important;
+        }
+
+        #fieldPropertiesContainer .form-label {
+            margin-bottom: 0.2rem !important;
+            font-size: 0.8rem !important;
+        }
+
+        #fieldPropertiesContainer hr {
+            margin: 0.5rem 0 !important;
+        }
+
+        #fieldPropertiesContainer h6 {
+            margin-bottom: 0.5rem !important;
+        }
+        
         .terminal-body {
             background: #1e1e1e !important;
             color: #d4d4d4 !important;
@@ -442,6 +527,59 @@
             min-height: 0 !important; /* Allow shrinking */
             display: flex !important;
             flex-direction: column !important;
+            width: 100% !important;
+            height: 100% !important;
+            box-sizing: border-box !important;
+        }
+        
+        /* Aggressive overflow prevention - remove all padding from nested elements */
+        .terminal-body * {
+            padding: 0 !important;
+            margin: 0 !important;
+            box-sizing: border-box !important;
+        }
+        
+        /* Add left/right padding to container elements only */
+        .terminal-body .tab-pane #fieldPropertiesContainer {
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+        }
+        
+        /* Restore column padding for layout */
+        .terminal-body .tab-pane .row > [class*="col-"] {
+            padding-left: 0.5rem !important;
+            padding-right: 0.5rem !important;
+        }
+        
+        /* Reset form control padding - should use Bootstrap default */
+        .terminal-body .form-control {
+            padding: 0.25rem 0.5rem !important;
+        }
+        
+        /* Reset button padding for wizard icon */
+        .terminal-body .btn {
+            padding: 0.25rem 0.5rem !important;
+            min-width: 40px !important;
+        }
+        
+        /* Reset checkbox to normal */
+        .terminal-body input[type="checkbox"] {
+            width: auto !important;
+            height: auto !important;
+            margin-right: 0.5rem !important;
+        }
+        
+        /* Reset specific elements that need some spacing */
+        .terminal-body .mb-3 {
+            margin-bottom: 0.5rem !important;
+        }
+        
+        .terminal-body .form-label {
+            margin-bottom: 0.2rem !important;
+        }
+        
+        .terminal-body hr {
+            margin: 0.5rem 0 !important;
         }
         
         /* Fix tab panes to show properly */
@@ -452,6 +590,34 @@
             min-height: 0 !important;
             display: flex !important;
             flex-direction: column !important;
+            position: relative !important;
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .tab-pane {
+            position: absolute !important;
+            top: 0;
+            left: 0;
+            width: 100% !important;
+            height: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            box-sizing: border-box !important;
+            box-sizing: border-box !important;
+            display: none !important;
+        }
+
+        .tab-pane.active {
+            display: flex !important;
+            flex-direction: column !important;
+            flex: 1 1 auto !important;
+            min-height: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            overflow: auto !important;
         }
         
         .terminal-body .tab-pane {
@@ -459,10 +625,9 @@
             flex: 1 1 auto;
             flex-direction: column;
             padding: 0 !important; /* Remove padding */
-            overflow: hidden !important;
+            overflow: auto !important; /* Allow scrolling within pane */
             min-height: 0 !important;
             margin: 0 !important;
-            overflow: auto; /* Allow scrolling within pane */
         }
         
         .terminal-body .tab-pane.show.active {
@@ -573,6 +738,26 @@
                             </a>
                         </div>
                     </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link" data-bs-toggle="dropdown" href="#" role="button">
+                            <i class="bi bi-arrow-left-right me-1"></i> Destination
+                        </a>
+                        <div class="dropdown-menu">
+                            <a href="#" class="dropdown-item" id="copySourceToDestination">
+                                <i class="bi bi-files me-2"></i> Copy Source Schema
+                            </a>
+                        </div>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link" data-bs-toggle="dropdown" href="#" role="button">
+                            <i class="bi bi-robot me-1"></i> AI Assistant
+                        </a>
+                        <div class="dropdown-menu">
+                            <a href="#" class="dropdown-item" id="openAIAssistant">
+                                <i class="bi bi-gear me-2"></i> Configure WebLLM
+                            </a>
+                        </div>
+                    </li>
                 </ul>
                 <!--end::Start Navbar Links-->
                 
@@ -671,6 +856,39 @@
                             </ul>
                         </li>
                         
+                        <li class="nav-header">CONNECTORS</li>
+                        <li class="nav-item">
+                            <a href="#" class="nav-link">
+                                <i class="nav-icon bi bi-cloud-arrow-down"></i>
+                                <p>
+                                    Data Sources
+                                    <i class="nav-arrow bi bi-chevron-right"></i>
+                                </p>
+                            </a>
+                            <ul class="nav nav-treeview">
+                                <li class="nav-item">
+                                    <a href="#" class="nav-link" id="navODataConnector">
+                                        <i class="nav-icon bi bi-server"></i>
+                                        <p>OData Service</p>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="#" class="nav-link disabled" title="Coming Soon">
+                                        <i class="nav-icon bi bi-database"></i>
+                                        <p>SQL Server</p>
+                                        <small class="badge badge-info">Soon</small>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="#" class="nav-link disabled" title="Coming Soon">
+                                        <i class="nav-icon bi bi-filetype-json"></i>
+                                        <p>REST API</p>
+                                        <small class="badge badge-info">Soon</small>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+
                         <li class="nav-header">ACTIONS</li>
                         <li class="nav-item">
                             <a href="#" class="nav-link" id="navExecute">
@@ -699,9 +917,21 @@
         <!--end::Sidebar-->
         
         <!--begin::App Main-->
-        <main class="app-main" style="padding: 0;">
+        <main class="app-main" style="padding: 0; display: flex; flex-direction: column; height: 100%; overflow: hidden;">
             
-            <div class="split" id="splitContainer">
+            <!-- Page Tabs Navigation -->
+            <div class="btn-group w-100" role="tablist" style="border-bottom: 1px solid #dee2e6; border-radius: 0; flex-shrink: 0;">
+                <button type="button" class="btn btn-outline-secondary page-tab active" data-page="mapping" style="border-radius: 0; border-right: 1px solid #dee2e6;">
+                    <i class="bi bi-diagram-3 me-1"></i>Mapping
+                </button>
+                <button type="button" class="btn btn-outline-secondary page-tab" data-page="ai-assistant" style="border-radius: 0;">
+                    <i class="bi bi-robot me-1"></i>AI Assistant
+                </button>
+            </div>
+            
+            <!-- Mapping Page (default) -->
+            <div class="page-content active" id="page-mapping" style="flex: 1; width: 100%; overflow: hidden; margin: 0; padding: 0; min-height: 0;">
+                <div class="split" id="splitContainer">
             
                 <!-- Top Panel: Mapping Canvas (75%) -->
                 <div class="split-panel" id="mappingPanel">
@@ -774,6 +1004,11 @@
                                         <i class="bi bi-filetype-cs me-1"></i>mapper.cs
                                     </button>
                                 </li>
+                                <li class="nav-item">
+                                    <button class="nav-link terminal-tab" id="properties-tab" data-bs-toggle="tab" data-bs-target="#properties-content" type="button" role="tab">
+                                        <i class="bi bi-sliders me-1"></i>Properties
+                                    </button>
+                                </li>
                                 <li class="nav-item ms-auto" style="display: flex; align-items: center; padding-right: 0.5rem;">
                                     <span class="badge bg-info me-2" id="mappingCount" style="font-size: 0.7rem; font-family: 'Consolas', monospace;">0 mappings</span>
                                     <button class="btn btn-sm btn-link text-white p-0" id="toggleFullscreen" title="Toggle Fullscreen" style="font-size: 1rem; line-height: 1;">
@@ -795,16 +1030,16 @@
                                         </button>
                                     </div>
                                     <!-- Split layout: Source and Destination side by side -->
-                                    <div style="flex: 1; display: flex; flex-direction: row !important; overflow: hidden; padding: 0; margin: 0; gap: 2px; background: #1e1e1e;">
+                                    <div style="flex: 1; display: flex; flex-direction: row !important; overflow: hidden; padding: 0; margin: 0; gap: 0; background: #1e1e1e;">
                                         <!-- Left: Source Schema -->
                                         <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden; padding: 0; margin: 0; min-width: 0;">
-                                            <label class="terminal-label" style="margin: 0; flex-shrink: 0;">Source Schema:</label>
-                                            <json-editor id="sourceSchemaInput" rows="4" style="flex: 1; min-height: 60px; width: 100%;"></json-editor>
+                                            <label class="terminal-label" style="margin: 0; padding: 0; flex-shrink: 0;">Source Schema:</label>
+                                            <json-editor id="sourceSchemaInput" rows="4" style="flex: 1; min-height: 60px; width: 100%; margin: 0; padding: 0;"></json-editor>
                                         </div>
                                         <!-- Right: Destination Schema -->
                                         <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden; padding: 0; margin: 0; min-width: 0;">
-                                            <label class="terminal-label" style="margin: 0; flex-shrink: 0;">Destination Schema:</label>
-                                            <json-editor id="destSchemaInput" rows="4" style="flex: 1; min-height: 60px; width: 100%;"></json-editor>
+                                            <label class="terminal-label" style="margin: 0; padding: 0; flex-shrink: 0;">Destination Schema:</label>
+                                            <json-editor id="destSchemaInput" rows="4" style="flex: 1; min-height: 60px; width: 100%; margin: 0; padding: 0;"></json-editor>
                                         </div>
                                     </div>
                                 </div>
@@ -878,6 +1113,74 @@
                                         <csharp-viewer id="csharpOutput" style="flex: 1; min-height: 100px;"></csharp-viewer>
                                     </div>
                                 </div>
+
+                                <!-- Properties Inspector Tab -->
+                                <div class="tab-pane fade" id="properties-content" role="tabpanel" style="padding: 0; margin: 0;">
+                                    <div class="terminal-toolbar" style="flex-shrink: 0;">
+                                        <button class="btn btn-sm btn-success me-1" id="saveProperties" title="Save Changes">
+                                            <i class="bi bi-check-circle me-1"></i>Save
+                                        </button>
+                                        <button class="btn btn-sm btn-secondary" id="clearProperties" title="Clear Selection">
+                                            <i class="bi bi-x-circle me-1"></i>Clear
+                                        </button>
+                                    </div>
+                                    <div style="flex: 1; display: flex; flex-direction: column; overflow: hidden; padding: 0; overflow-y: auto;">
+                                        <div id="fieldPropertiesContainer" style="display: none;">
+                                            <h6 id="fieldName" style="margin-bottom: 1rem; color: #0d6efd;">Field Properties</h6>
+                                            
+                                            <div class="row g-2">
+                                                <!-- Left Column: Single-line properties -->
+                                                <div class="col-md-6">
+                                                    <div class="mb-3">
+                                                        <label for="propFieldName" class="form-label">Field Name:</label>
+                                                        <input type="text" id="propFieldName" class="form-control form-control-sm" placeholder="Field name" readonly>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label for="propFieldType" class="form-label">Type:</label>
+                                                        <input type="text" id="propFieldType" class="form-control form-control-sm" placeholder="string, number, object, etc.">
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label for="propFieldFormat" class="form-label">Format:</label>
+                                                        <input type="text" id="propFieldFormat" class="form-control form-control-sm" placeholder="e.g., date-time, email">
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label for="propFieldDefault" class="form-label">Default Value:</label>
+                                                        <input type="text" id="propFieldDefault" class="form-control form-control-sm" placeholder="Default value">
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <div class="form-check">
+                                                            <input type="checkbox" id="propFieldRequired" class="form-check-input">
+                                                            <label class="form-check-label" for="propFieldRequired">
+                                                                Required
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Right Column: Text areas -->
+                                                <div class="col-md-6">
+                                                    <div style="height: 100%;">
+                                                        <label for="propFieldBusinessDesc" class="form-label">Business Description:</label>
+                                                        <div class="input-group input-group-sm" style="height: calc(100% - 28px);">
+                                                            <textarea id="propFieldBusinessDesc" class="form-control" rows="6" placeholder="Business-friendly description" style="font-size: 0.875rem; resize: none;"></textarea>
+                                                            <button class="btn btn-outline-info" id="generateBusinessDesc" type="button" title="Generate with AI" style="white-space: nowrap;">
+                                                                <i class="bi bi-magic"></i>
+                                                            </button>
+                                                        </div>
+                                                        <small class="text-muted d-block mt-1" style="font-size: 0.7rem;">Use AI to generate</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <hr style="margin-top: 1rem; margin-bottom: 1rem;">
+                                            <p class="text-muted small" id="fieldPath" style="margin-bottom: 0;">Path: </p>
+                                        </div>
+                                        <div id="noSelectionPlaceholder" style="text-align: center; padding: 2rem; color: #6c757d;">
+                                            <i class="bi bi-cursor-text" style="font-size: 2rem; display: block; margin-bottom: 1rem;"></i>
+                                            <p>Click on a destination field to edit its properties</p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -885,10 +1188,49 @@
                 
             </div>
             <!-- End Split Container -->
+            </div>
+            <!-- End Mapping Page -->
+            
+            <!-- AI Assistant Page -->
+            <div class="page-content" id="page-ai-assistant" style="flex: 1; width: 100%; overflow: hidden; margin: 0; padding: 0; min-height: 0;">
+                <div id="aiAssistantContainer">
+                    <!-- AI Assistant UI will be rendered here -->
+                </div>
+            </div>
+            <!-- End AI Assistant Page -->
+            
         </main>
         <!--end::App Main-->
     </div>
     <!--end::App Wrapper-->
+
+    <!-- Loading Modal -->
+    <div class="modal fade" id="loadingModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 800px;">
+            <div class="modal-content" style="background: #1e1e1e; border: none; aspect-ratio: 16/9;">
+                <div class="modal-body text-center d-flex flex-column align-items-center justify-content-center py-0" style="background: #1e1e1e; color: #d4d4d4;">
+                    <!-- Splash Image Background -->
+                    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: url('./images/splash.png') center/cover no-repeat; opacity: 0.3; z-index: 0;"></div>
+                    
+                    <!-- Content overlay -->
+                    <div style="position: relative; z-index: 1; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
+                        <div class="spinner-border mb-4" role="status" style="color: #0d6efd; width: 3rem; height: 3rem;">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <h4 style="color: #d4d4d4; margin-bottom: 1rem; font-weight: 600;">Initializing WebLLM</h4>
+                        <p id="loadingStatus" style="color: #a0a0a0; margin-bottom: 1.5rem; font-size: 0.95rem;">Loading TinyLlama 1.1B model...</p>
+                        <div class="progress mb-3" style="height: 28px; width: 100%; max-width: 300px; background: #2d2d30;">
+                            <div id="loadingProgressBar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%; background: linear-gradient(90deg, #0d6efd, #0dcaf0);" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                                <span id="loadingPercentage" style="font-size: 0.85rem; font-weight: 600; color: #fff;">0%</span>
+                            </div>
+                        </div>
+                        <small style="color: #808080; font-size: 0.85rem;">This may take a minute on first load...</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     
     <!--begin::Third Party Plugin(OverlayScrollbars)-->
     <script src="https://cdn.jsdelivr.net/npm/overlayscrollbars@2.11.0/browser/overlayscrollbars.browser.es6.min.js" crossorigin="anonymous"></script>
@@ -1131,6 +1473,12 @@
                 document.getElementById('generateOutput').click();
             });
             
+            // OData Connector handler
+            document.getElementById('navODataConnector')?.addEventListener('click', (e) => {
+                e.preventDefault();
+                showODataConnector();
+            });
+            
             // Functoid sidebar links - handle both class and data-functoid for backwards compatibility
             // Use event delegation to avoid multiple handlers on the same element
             const handleFunctoidClick = (e) => {
@@ -1174,6 +1522,68 @@
                     document.exitFullscreen();
                 }
             });
+            
+            // Global OData Connector UI instance
+            window.odataConnectorUI = null;
+            
+            // Function to show OData connector modal
+            function showODataConnector() {
+                // Initialize OData connector UI if not already done
+                if (!window.odataConnectorUI) {
+                    window.odataConnectorUI = new ODataConnectorUI('odataConnectorContainer', onSchemaLoadedFromConnector);
+                }
+                
+                // Show the modal
+                const modal = new bootstrap.Modal(document.getElementById('odataConnectorModal'));
+                modal.show();
+            }
+            
+            // Callback function when schema is loaded from connector
+            function onSchemaLoadedFromConnector(entityName, schema) {
+                try {
+                    // Convert the schema to the format expected by the mapping tool
+                    const schemaConfig = {
+                        source: schema,
+                        destination: null // Will be loaded separately or use existing
+                    };
+                    
+                    // Update the schemas JSON editor
+                    const configEditor = document.getElementById('configEditor');
+                    if (configEditor && configEditor.setValue) {
+                        const currentConfig = configEditor.getValue();
+                        if (currentConfig && currentConfig.source) {
+                            // Update source schema
+                            currentConfig.source = schema;
+                        } else {
+                            // Set as new source schema
+                            configEditor.setValue({
+                                source: schema,
+                                destination: currentConfig?.destination || null
+                            });
+                        }
+                    }
+                    
+                    // Trigger schema reload in the mapping tool
+                    if (window.mappingToolInstance && window.mappingToolInstance.loadSchemasFromConfig) {
+                        window.mappingToolInstance.loadSchemasFromConfig({
+                            source: schema,
+                            destination: null
+                        });
+                    }
+                    
+                    showToast(`Schema loaded from ${entityName} entity!`, 'success');
+                    
+                    // Close the modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('odataConnectorModal'));
+                    if (modal) {
+                        modal.hide();
+                    }
+                    
+                } catch (error) {
+                    console.error('Error loading schema from connector:', error);
+                    showToast(`Failed to load schema: ${error.message}`, 'error');
+                }
+            }
             
             // C# Code Generation
             document.getElementById('generateCSharp')?.addEventListener('click', function() {
@@ -1231,5 +1641,38 @@
             }
         });
     </script>
+
+    <!-- AI Assistant Modal -->
+    <div class="modal fade" id="odataConnectorModal" tabindex="-1" aria-labelledby="odataConnectorModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="odataConnectorModalLabel">
+                        <i class="bi bi-cloud-arrow-down me-2"></i>OData Service Connector
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="odataConnectorContainer">
+                        <!-- OData connector UI will be rendered here -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        </div>
+    </div>
+
+    <!-- Include AI Components Scripts -->
+    <script src="components/ai/webllm-config.js"></script>
+    <script src="components/ai/webllm-ui.js"></script>
+
+    <!-- Include OData Connector Scripts -->
+    <script src="connectors/odata/odata-connector.js"></script>
+    <script src="connectors/odata/odata-ui.js"></script>
 </body>
 </html>
